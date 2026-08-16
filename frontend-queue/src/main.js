@@ -1,5 +1,6 @@
 import "./style.css";
 import { io } from "socket.io-client";
+import QRCode from "qrcode";
 import { api, API_URL } from "./api.js";
 import {
   mockSalons,
@@ -367,6 +368,18 @@ function bookingCode(id) {
   return (id ?? "").toString().slice(-6).toUpperCase();
 }
 
+function renderBookingQR(canvasId, item) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  QRCode.toCanvas(canvas, item._id ?? "", {
+    width: 88,
+    margin: 1,
+    color: { dark: "#101828", light: "#ffffff" },
+  }).catch(() => {
+    canvas.replaceWith(document.createTextNode(""));
+  });
+}
+
 function renderScheduledResult(item) {
   const time = new Date(item.scheduledFor);
   const label = time.toLocaleString("uz-UZ", {
@@ -383,11 +396,15 @@ function renderScheduledResult(item) {
       <div class="scheduled-time">${label}</div>
       <div class="eta-sub" style="margin-bottom:16px;">${escapeHtml(item.masterName ?? "")} — ${escapeHtml(item.serviceName ?? "")}</div>
       <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
-      <div class="booking-code">${bookingCode(item._id)}</div>
+      <div class="booking-code-row">
+        <div class="booking-code">${bookingCode(item._id)}</div>
+        <canvas id="scheduled-qr" class="booking-qr"></canvas>
+      </div>
       <p class="error-text" id="checkin-error"></p>
       <button id="checkin-btn">Men keldim</button>
     </div>
   `;
+  renderBookingQR("scheduled-qr", item);
 
   document.getElementById("checkin-btn").addEventListener("click", async () => {
     const errorEl = document.getElementById("checkin-error");
@@ -477,7 +494,10 @@ function renderResult(item) {
       <div class="status-pill ${item.status}">${statusLabel(item.status)}</div>
       ${item.paid ? `<div class="paid-badge">✅ To'lov tasdiqlandi${item.paymentMethod ? ` (${item.paymentMethod === "card" ? "karta" : "naqd"})` : ""}</div>` : ""}
       <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
-      <div class="booking-code booking-code-sm">${bookingCode(item._id)}</div>
+      <div class="booking-code-row">
+        <div class="booking-code booking-code-sm">${bookingCode(item._id)}</div>
+        <canvas id="live-qr" class="booking-qr"></canvas>
+      </div>
       <div class="details">
         <div class="detail-row"><span>Ism</span><span>${escapeHtml(item.clientName ?? "—")}</span></div>
         <div class="detail-row"><span>Telefon</span><span>${escapeHtml(item.phone ?? "—")}</span></div>
@@ -487,6 +507,7 @@ function renderResult(item) {
       </button>
     </div>
   `;
+  renderBookingQR("live-qr", item);
 
   document.getElementById("away-btn").addEventListener("click", () => {
     const nowAway = localStorage.getItem("navbat_away") === "1";

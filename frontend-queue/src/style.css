@@ -529,6 +529,26 @@ button.away.active {
   margin-bottom: 16px;
 }
 
+.booking-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.booking-code-row .booking-code {
+  margin-bottom: 0;
+}
+
+.booking-qr {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 4px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
 .paid-badge {
   display: inline-flex;
   align-items: center;
