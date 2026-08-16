@@ -38,18 +38,15 @@ export default function queuePage() {
   let statusFilter = 'all';
   let items = [];
   let masters = app.get().masters;
+  let servicesById = Object.fromEntries((app.get().services || []).map((s) => [s._id, s]));
 
   async function load() {
     tableWrap.innerHTML = '<div style="padding:24px"><span class="skeleton" style="width:100%;height:100px"></span></div>';
-    try {
-      items = await api.queue.all();
-      app.set({ queue: items });
-      renderFilters();
-      renderTable();
-    } catch (err) {
-      tableWrap.innerHTML = '';
-      tableWrap.append(errorState({ title: 'Не удалось загрузить очередь', description: err.message, retry: load }));
-    }
+    // api.queue.all() всегда возвращает данные (real или demo fallback), catch не нужен
+    items = await api.queue.all();
+    app.set({ queue: items });
+    renderFilters();
+    renderTable();
   }
 
   function renderFilters() {
@@ -122,7 +119,7 @@ export default function queuePage() {
             </div>
           </div>
         </td>
-        <td style="color:var(--text)">${escapeHtml(it.serviceName || '—')}</td>
+        <td style="color:var(--text)">${escapeHtml(servicesById[it.serviceId]?.name || '—')}</td>
         <td style="color:var(--text-muted)">${escapeHtml(it.masterName || '—')}</td>
         <td><span class="badge ${st.cls}"><span class="d"></span>${st.label}</span></td>
         <td class="col-r col-mono">${it.scheduledFor ? fmtTime(it.scheduledFor) : it.createdAt ? fmtTime(it.createdAt) : '—'}</td>

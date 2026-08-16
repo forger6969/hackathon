@@ -3,6 +3,7 @@ const QueueItem = require('../models/QueueItem');
 const Master = require('../models/Master');
 const Service = require('../models/Service');
 const Stock = require('../models/Stock');
+const CashMovement = require('../models/CashMovement');
 
 module.exports = function createQueueRouter(io) {
   const router = express.Router();
@@ -36,12 +37,15 @@ module.exports = function createQueueRouter(io) {
           scheduledFor: item.scheduledFor,
           paid: item.paid,
           paymentMethod: item.paymentMethod,
+          payments: item.payments,
+          changeGiven: item.changeGiven,
+          serviceId: item.serviceId,
           eta: null,
         };
       }
       const eta = liveIdx * avgMs;
       liveIdx += 1;
-      return { _id: item._id, clientName: item.clientName, status: item.status, paid: item.paid, paymentMethod: item.paymentMethod, eta };
+      return { _id: item._id, clientName: item.clientName, status: item.status, paid: item.paid, paymentMethod: item.paymentMethod, payments: item.payments, changeGiven: item.changeGiven, serviceId: item.serviceId, calledAt: item.calledAt, eta };
     });
 
     io.emit('queue:update', { masterId: String(masterId), queue: withEta });
@@ -67,6 +71,9 @@ module.exports = function createQueueRouter(io) {
         scheduledFor: item.scheduledFor,
         paid: item.paid,
         paymentMethod: item.paymentMethod,
+        payments: item.payments,
+        changeGiven: item.changeGiven,
+        serviceId: item.serviceId,
         masterId: item.masterId ? item.masterId._id : null,
         masterName: item.masterId ? item.masterId.name : null,
       }))
@@ -98,6 +105,21 @@ module.exports = function createQueueRouter(io) {
     res.json(withEta);
   });
 
+  // Past bookings for a master — done/skipped/cancelled, not the live queue.
+  router.get('/:masterId/history', async (req, res) => {
+    const { status, from, to } = req.query;
+    const filter = { masterId: req.params.masterId };
+    filter.status = status ? status : { $in: ['done', 'skipped', 'cancelled'] };
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    const items = await QueueItem.find(filter).sort({ createdAt: -1 }).limit(200).populate('serviceId', 'name price');
+    res.json(items);
+  });
+
   // Client or reception confirms the scheduled client has actually arrived —
   // joins the back of the live queue at that moment, regardless of scheduledFor.
   router.post('/:id/checkin', async (req, res) => {
@@ -114,21 +136,60 @@ module.exports = function createQueueRouter(io) {
     res.json(item);
   });
 
-  // Reception marks the client as paid — advisory flag only (no real auth
-  // exists yet to hard-enforce it), the master screen shows it as a badge.
-  // No split/multi-method payments — one method per booking, good enough
-  // for the demo without a payment-transaction ledger.
+  // Reception records one payment line (cash or card). Call it more than
+  // once on the same booking for split payment — each call appends to
+  // `payments`, `paid` flips true once the sum covers the service price.
+  // `amount` is optional for backward compatibility: omit it to pay the
+  // full remaining balance in one method, same as the old single-method
+  // behaviour the frontend already shipped.
+  // Advisory only — no real auth exists yet to hard-enforce this, the
+  // master/reception screens just show it as a badge.
   router.post('/:id/pay', async (req, res) => {
-    const { method } = req.body;
-    const paymentMethod = ['cash', 'card'].includes(method) ? method : 'cash';
-    const item = await QueueItem.findByIdAndUpdate(
-      req.params.id,
-      { paid: true, paymentMethod },
-      { new: true }
-    );
+    const { method, amount } = req.body;
+    if (!['cash', 'card'].includes(method)) {
+      return res.status(400).json({ error: 'method must be cash or card' });
+    }
+
+    const item = await QueueItem.findById(req.params.id);
     if (!item) return res.status(404).json({ error: 'not found' });
+
+    const service = await Service.findById(item.serviceId);
+    const due = service ? service.price : 0;
+    const alreadyPaid = item.payments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = Math.max(0, due - alreadyPaid);
+    const paymentAmount = amount > 0 ? amount : remaining;
+
+    item.payments.push({ method, amount: paymentAmount });
+    await CashMovement.create({
+      type: 'payment', method, amount: paymentAmount, queueItemId: item._id,
+    });
+
+    const totalPaid = item.payments.reduce((sum, p) => sum + p.amount, 0);
+    const change = Math.max(0, totalPaid - due);
+
+    if (totalPaid >= due) {
+      item.paid = true;
+      item.changeGiven = change;
+      const distinctMethods = new Set(item.payments.map((p) => p.method));
+      item.paymentMethod = distinctMethods.size > 1 ? 'split' : item.payments[0].method;
+
+      // Change is conventionally handed back from the cash drawer even when
+      // the overpaying line was a card top-up — simplification, not real
+      // multi-currency-drawer accounting.
+      if (change > 0) {
+        await CashMovement.create({ type: 'refund', method: 'cash', amount: change, queueItemId: item._id });
+      }
+    }
+
+    await item.save();
     await broadcastQueue(item.masterId);
-    res.json(item);
+    res.json({
+      item,
+      due,
+      totalPaid,
+      remaining: Math.max(0, due - totalPaid),
+      change,
+    });
   });
 
   router.post('/:id/status', async (req, res) => {

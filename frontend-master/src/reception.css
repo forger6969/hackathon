@@ -69,10 +69,10 @@
   flex: none;
 }
 
-.r-stat-icon-accent { background: rgba(201, 164, 92, 0.16); }
-.r-stat-icon-blue { background: rgba(122, 154, 200, 0.16); }
-.r-stat-icon-muted { background: rgba(154, 154, 154, 0.14); }
-.r-stat-icon-success { background: rgba(122, 154, 109, 0.16); }
+.r-stat-icon-accent { background: var(--accent-soft); }
+.r-stat-icon-blue { background: #e8dcc2; }
+.r-stat-icon-muted { background: var(--surface-hover); }
+.r-stat-icon-success { background: var(--success-soft); }
 
 .r-stat-body {
   display: flex;
@@ -346,18 +346,18 @@
 
 .status-badge.status-scheduled {
   color: var(--text-secondary);
-  background: rgba(154, 154, 154, 0.12);
+  background: var(--surface-hover);
   border: 1px dashed var(--border);
 }
 
 .status-badge.status-paid {
   color: var(--success);
-  background: rgba(122, 154, 109, 0.14);
+  background: var(--success-soft);
 }
 
 .status-badge.status-unpaid {
   color: var(--error);
-  background: rgba(176, 82, 74, 0.14);
+  background: var(--error-soft);
 }
 
 .reception-master {
