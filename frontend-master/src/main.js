@@ -52,6 +52,7 @@ function showLoginScreen(errorMsg = "") {
     <div class="login-page">
       <div class="login-screen">
         <div class="login-brand">
+          <span class="brand-mark brand-mark-lg"><img src="/logo-icon.png" alt="" /></span>
           <span class="login-brand-name">NAVBAT</span>
           <span class="login-brand-sub">Usta paneli</span>
         </div>
