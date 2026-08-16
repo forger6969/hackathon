@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Навбат — Панель хозяина</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">◆</span>
+          <span class="brand-name">Навбат</span>
+          <span class="brand-role">панель хозяина</span>
+        </div>
+        <div class="status" id="conn-status">
+          <span class="dot"></span>
+          <span class="status-text">офлайн</span>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="section-head">
+          <div>
+            <div class="eyebrow">сегодня</div>
+            <h1 class="page-title" id="today-date">—</h1>
+          </div>
+          <button class="btn-ghost" id="refresh-btn" type="button">Обновить</button>
+        </section>
+
+        <section class="metrics">
+          <article class="metric card">
+            <div class="metric-label">Клиентов обслужено</div>
+            <div class="metric-value" id="m-clients">0</div>
+            <div class="metric-sub">завершённые записи за сегодня</div>
+          </article>
+
+          <article class="metric card metric--accent">
+            <div class="metric-label">Выручка</div>
+            <div class="metric-value">
+              <span id="m-revenue">0</span>
+              <span class="metric-unit">сум</span>
+            </div>
+            <div class="metric-sub">по завершённым услугам</div>
+          </article>
+
+          <article class="metric card">
+            <div class="metric-label">Заканчивается</div>
+            <div class="metric-value" id="m-low">0</div>
+            <div class="metric-sub">позиций ниже порога</div>
+          </article>
+        </section>
+
+        <section class="card stock">
+          <header class="card-head">
+            <h2 class="card-title">Склад — что заканчивается</h2>
+            <span class="card-hint" id="stock-hint">Обновляется автоматически при «Готово» у мастера</span>
+          </header>
+          <ul class="stock-list" id="stock-list">
+            <li class="stock-empty">Загрузка…</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Навбат — MARS IT Hackathon</span>
+        <span class="footer-src" id="src-label">источник: —</span>
+      </footer>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
