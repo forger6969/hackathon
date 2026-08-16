@@ -196,7 +196,7 @@ async function renderMasterStep() {
     const avatar = master.photoUrl
       ? `<img class="avatar" src="${escapeHtml(master.photoUrl)}" alt="${escapeHtml(master.name)}" />`
       : `<div class="avatar">${initials(master.name)}</div>`;
-    el.innerHTML = `${avatar}<div><div class="option-title">${escapeHtml(master.name)}</div><div class="option-sub">Smenada</div></div>`;
+    el.innerHTML = `<div class="avatar-wrap">${avatar}<span class="online-dot"></span></div><div><div class="option-title">${escapeHtml(master.name)}</div><div class="option-sub">Smenada</div></div>`;
     el.addEventListener("click", () => {
       state.master = master;
       state.service = null;
@@ -331,6 +331,12 @@ function renderInfoStep() {
 
   document.getElementById("info-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = "Yuborilmoqda...";
+
     const errorEl = document.getElementById("info-error");
     errorEl.textContent = "";
     state.clientName = document.getElementById("clientName").value.trim();
@@ -409,7 +415,10 @@ function renderScheduledResult(item) {
   `;
   renderBookingQR("scheduled-qr", item);
 
-  document.getElementById("checkin-btn").addEventListener("click", async () => {
+  document.getElementById("checkin-btn").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    if (btn.disabled) return;
+    btn.disabled = true;
     const errorEl = document.getElementById("checkin-error");
     errorEl.textContent = "";
     let updated;
@@ -421,6 +430,7 @@ function renderScheduledResult(item) {
         updated = { ...item, ...(await api.checkin(item._id)) };
       } catch {
         errorEl.textContent = "Xatolik: qayta urinib ko'ring.";
+        btn.disabled = false;
         return;
       }
     }
