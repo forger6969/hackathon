@@ -11,6 +11,7 @@ import {
 
 const app = document.getElementById("app");
 const STORAGE_KEY = "navbat_queue_item";
+const STEP_LABELS = ["Usta", "Xizmat", "Vaqt", "Tasdiqlash"];
 
 let usingMock = false;
 let socket = null;
@@ -48,10 +49,11 @@ async function safeCall(realFn, mockValue) {
   }
 }
 
-function progressDots(current, total) {
-  return `<div class="progress-dots">${Array.from({ length: total })
-    .map((_, i) => `<span class="${i < current ? "active" : ""}"></span>`)
-    .join("")}</div>`;
+function stepper(currentIndex) {
+  return `<div class="stepper">${STEP_LABELS.map((label, i) => {
+    const state = i < currentIndex ? "done" : i === currentIndex ? "active" : "";
+    return `<div class="step-item ${state}"><span class="step-num">${i + 1}</span><span class="step-label">${label}</span></div>`;
+  }).join('<span class="step-line"></span>')}</div>`;
 }
 
 function backButton(onClick) {
@@ -62,32 +64,25 @@ function backButton(onClick) {
   return btn;
 }
 
-// ---------- Step 1: salon ----------
+// ---------- Locations: salon + map (static landing section) ----------
 
-async function renderSalonStep() {
-  state.step = "salon";
-  if (state.salons.length === 0) {
-    state.salons = await safeCall(() => api.getSalons(), mockSalons);
-  }
+function setSalonMap(salon) {
+  const frame = document.getElementById("salon-map");
+  if (!frame || !salon?.location) return;
+  const { lat, lng } = salon.location;
+  const d = 0.012;
+  frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d}%2C${lat - d}%2C${lng + d}%2C${lat + d}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
 
-  app.innerHTML = `
-    <div class="wizard">
-      <div class="hero">
-        <div class="hero-badge">NAVBAT</div>
-        <div class="hero-title">Navbatsiz sartaroshxona</div>
-        <div class="hero-sub">Salonni tanlang, joyingizni band qiling — kutishga hojat yo'q</div>
-      </div>
-      ${progressDots(1, 5)}
-      <div class="step-title">Salonni tanlang</div>
-      <div class="step-sub">Sizga qulay filialni tanlang</div>
-      <div class="option-list" id="salon-list"></div>
-    </div>
-  `;
-
+async function renderSalonSection() {
   const list = document.getElementById("salon-list");
-  state.salons.forEach((salon) => {
+  if (!list) return;
+  state.salons = await safeCall(() => api.getSalons(), mockSalons);
+
+  list.innerHTML = "";
+  state.salons.forEach((salon, i) => {
     const el = document.createElement("button");
-    el.className = "option-card";
+    el.className = "option-card salon-card";
     el.innerHTML = `
       <div class="avatar">${initials(salon.name)}</div>
       <div>
@@ -96,23 +91,92 @@ async function renderSalonStep() {
       </div>
     `;
     el.addEventListener("click", () => {
+      document.querySelectorAll(".salon-card").forEach((c) => c.classList.remove("selected"));
+      el.classList.add("selected");
       state.salon = salon;
       state.master = null;
       state.masters = [];
+      setSalonMap(salon);
       renderMasterStep();
+      document.getElementById("book")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     list.appendChild(el);
+    if (i === 0) {
+      setSalonMap(salon);
+    }
   });
+}
+
+// ---------- Landing preview: services & masters (read-only teasers) ----------
+
+async function renderServicesPreview() {
+  const grid = document.getElementById("services-preview");
+  if (!grid) return;
+  const services = await safeCall(() => api.getServices(), mockServices);
+  grid.innerHTML = services
+    .map(
+      (s) => `
+      <div class="preview-card reveal">
+        <div class="preview-card-icon">${initials(s.name)}</div>
+        <div class="preview-card-title">${escapeHtml(s.name)}</div>
+        <div class="preview-card-price">${s.price.toLocaleString()} so'm</div>
+      </div>
+    `
+    )
+    .join("");
+  observeReveal();
+}
+
+async function renderMastersPreview() {
+  const grid = document.getElementById("masters-preview");
+  if (!grid) return;
+  const masters = await safeCall(() => api.getMasters(), mockMasters);
+  grid.innerHTML = masters
+    .map((m) => {
+      const avatar = m.photoUrl
+        ? `<img class="preview-avatar" src="${escapeHtml(m.photoUrl)}" alt="${escapeHtml(m.name)}" />`
+        : `<div class="preview-avatar preview-avatar-fallback">${initials(m.name)}</div>`;
+      return `
+        <div class="preview-card reveal">
+          ${avatar}
+          <div class="preview-card-title">${escapeHtml(m.name)}</div>
+          <div class="preview-card-sub">Usta</div>
+        </div>
+      `;
+    })
+    .join("");
+  observeReveal();
 }
 
 // ---------- Step 2: master ----------
 
+function scrollToLocations() {
+  document.getElementById("locations")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderEmptyBookState() {
+  app.innerHTML = `
+    <div class="wizard">
+      <div class="empty-book">
+        <div class="empty-book-title">Avval salonni tanlang</div>
+        <div class="empty-book-sub">Navbatga yozilish uchun yuqoridagi filiallardan birini tanlashingiz kerak</div>
+        <button id="goto-locations">Salonlarni ko'rish</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("goto-locations").addEventListener("click", scrollToLocations);
+}
+
 async function renderMasterStep() {
+  if (!state.salon) {
+    renderEmptyBookState();
+    return;
+  }
   state.step = "master";
   state.masters = await safeCall(() => api.getMasters(state.salon._id), mockMasters);
 
-  app.innerHTML = `<div class="wizard">${progressDots(2, 5)}<div class="step-title">Ustani tanlang</div><div class="step-sub">${escapeHtml(state.salon.name)}</div><div class="option-list" id="master-list"></div></div>`;
-  document.querySelector(".wizard").prepend(backButton(renderSalonStep));
+  app.innerHTML = `<div class="wizard">${stepper(0)}<div class="step-title">Ustani tanlang</div><div class="step-sub">${escapeHtml(state.salon.name)}</div><div class="option-list" id="master-list"></div></div>`;
+  document.querySelector(".wizard").prepend(backButton(scrollToLocations));
 
   const list = document.getElementById("master-list");
   state.masters.forEach((master) => {
@@ -139,7 +203,7 @@ async function renderServiceStep() {
     state.services = await safeCall(() => api.getServices(), mockServices);
   }
 
-  app.innerHTML = `<div class="wizard">${progressDots(3, 5)}<div class="step-title">Xizmatni tanlang</div><div class="step-sub">${escapeHtml(state.master.name)} bilan</div><div class="option-list" id="service-list"></div></div>`;
+  app.innerHTML = `<div class="wizard">${stepper(1)}<div class="step-title">Xizmatni tanlang</div><div class="step-sub">${escapeHtml(state.master.name)} bilan</div><div class="option-list" id="service-list"></div></div>`;
   document.querySelector(".wizard").prepend(backButton(renderMasterStep));
 
   const list = document.getElementById("service-list");
@@ -161,7 +225,7 @@ function renderModeStep() {
   state.step = "mode";
   app.innerHTML = `
     <div class="wizard">
-      ${progressDots(4, 5)}
+      ${stepper(2)}
       <div class="step-title">Qachon kelasiz?</div>
       <div class="step-sub">${escapeHtml(state.service.name)} — ${escapeHtml(state.master.name)}</div>
       <div class="mode-choice">
@@ -200,7 +264,7 @@ function renderTimeStep() {
 
   app.innerHTML = `
     <div class="wizard">
-      ${progressDots(4, 5)}
+      ${stepper(2)}
       <div class="step-title">Qaysi vaqtga?</div>
       <div class="step-sub">Kelmoqchi bo'lgan vaqtingizni tanlang</div>
       <div class="form">
@@ -235,7 +299,7 @@ function renderInfoStep() {
   state.step = "info";
   app.innerHTML = `
     <div class="wizard">
-      ${progressDots(5, 5)}
+      ${stepper(3)}
       <div class="step-title">Ma'lumotlaringiz</div>
       <div class="step-sub">Navbatni tasdiqlash uchun</div>
       <form class="form" id="info-form">
@@ -418,9 +482,48 @@ function connectSocket(item) {
   });
 }
 
+// ---------- Landing chrome: reveal-on-scroll, sticky navbar shadow ----------
+
+let revealObserver = null;
+
+function observeReveal() {
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+  }
+  document.querySelectorAll(".reveal:not(.in-view)").forEach((el) => revealObserver.observe(el));
+}
+
+function initNavbarShadow() {
+  const navbar = document.getElementById("navbar");
+  if (!navbar) return;
+  window.addEventListener(
+    "scroll",
+    () => {
+      navbar.classList.toggle("scrolled", window.scrollY > 12);
+    },
+    { passive: true }
+  );
+}
+
 // ---------- Init ----------
 
 async function init() {
+  initNavbarShadow();
+  observeReveal();
+  renderServicesPreview();
+  renderMastersPreview();
+  await renderSalonSection();
+
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     const item = JSON.parse(stored);
@@ -430,7 +533,7 @@ async function init() {
     }
     localStorage.removeItem(STORAGE_KEY);
   }
-  renderSalonStep();
+  renderMasterStep();
 }
 
 init();
