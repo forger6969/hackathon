@@ -28,13 +28,6 @@ export function mockCreateQueueItem(body) {
   };
 }
 
-export function mockQueueList(masterId, myId) {
-  return [
-    { _id: "mock-other-1", clientName: "Boshqa mijoz", status: "in_progress", eta: 0 },
-    { _id: myId, clientName: "Siz", status: "waiting", eta: 20 * 60 * 1000 },
-  ];
-}
-
 export function mockCheckin(item) {
   return { ...item, status: "waiting", eta: 20 * 60 * 1000, position: 2 };
 }
