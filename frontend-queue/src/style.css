@@ -1,22 +1,26 @@
 :root {
-  --bg: #0f0f0f;
-  --surface: #181818;
-  --surface-hover: #1f1f1f;
-  --border: #2a2a2a;
+  --bg: #fdfbf7;
+  --surface: #f8f5ef;
+  --surface-hover: #f2ede3;
+  --border: #e9e2d4;
 
-  --text: #f5f1e8;
-  --text-heading: #ffffff;
-  --text-secondary: #9a9a9a;
-  --text-disabled: #5c5c5c;
+  --text: #344054;
+  --text-heading: #101828;
+  --text-secondary: #667085;
+  --text-disabled: #98a2b3;
 
-  --accent: #c9a45c;
-  --accent-hover: #b8924a;
-  --accent-bright: #e0c285;
+  --accent: #465fff;
+  --accent-hover: #3a4fe0;
+  --accent-bright: #6a80ff;
 
-  --success: #7a9a6d;
-  --error: #b0524a;
+  --success: #12b76a;
+  --error: #f04438;
 
-  color-scheme: dark;
+  --on-accent: #ffffff;
+  --on-success: #ffffff;
+  --on-media: #ffffff;
+
+  color-scheme: light;
 }
 
 * {
@@ -126,6 +130,21 @@ body.standalone-page #app {
   color: var(--accent);
   line-height: 1;
   margin-bottom: 16px;
+  animation: number-pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes number-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .eta {
@@ -154,12 +173,12 @@ body.standalone-page #app {
 
 .status-pill.called {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
 }
 
 .status-pill.done {
   background: var(--success);
-  color: #0f150f;
+  color: var(--on-success);
 }
 
 .details {
@@ -184,28 +203,34 @@ body.standalone-page #app {
 button {
   width: 100%;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--surface-hover);
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 button:hover {
   background: var(--border);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 button.away.active {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -225,7 +250,7 @@ button.away.active {
 .form select {
   width: 100%;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
@@ -241,7 +266,7 @@ button.away.active {
 .form button {
   margin-top: 8px;
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   border: none;
 }
 
@@ -263,7 +288,7 @@ button.away.active {
 .qr-box {
   display: inline-block;
   padding: 16px;
-  background: var(--text);
+  background: #ffffff;
   border-radius: 12px;
   border: 2px solid var(--accent);
   line-height: 0;
@@ -322,7 +347,7 @@ button.away.active {
 
 .step-item.active .step-num {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -505,14 +530,32 @@ button.away.active {
 }
 
 .paid-badge {
-  display: inline-block;
-  background: var(--success);
-  color: #0f150f;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(18, 183, 106, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(18, 183, 106, 0.35);
   font-weight: 700;
   font-size: 13px;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 999px;
   margin-bottom: 16px;
+  animation: paid-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes paid-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ==================== Landing page ==================== */
@@ -531,19 +574,26 @@ button.away.active {
   align-items: center;
   justify-content: center;
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   font-weight: 700;
   padding: 12px 22px;
-  border-radius: 10px;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 12px rgba(70, 95, 255, 0.28);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(70, 95, 255, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(70, 95, 255, 0.28);
 }
 
 .btn-lg {
@@ -557,16 +607,17 @@ button.away.active {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(15, 15, 15, 0.7);
+  background: rgba(253, 251, 247, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .navbar.scrolled {
   border-bottom-color: var(--border);
-  background: rgba(15, 15, 15, 0.92);
+  background: rgba(253, 251, 247, 0.95);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
 .navbar-inner {
@@ -580,10 +631,30 @@ button.away.active {
 }
 
 .navbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font-weight: 800;
   letter-spacing: 0.14em;
   font-size: 15px;
   color: var(--text-heading);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  flex-shrink: 0;
+}
+
+.brand-mark svg {
+  width: 17px;
+  height: 17px;
 }
 
 .nav-links {
@@ -625,7 +696,7 @@ button.away.active {
 }
 
 .hero-media.img-fallback {
-  background: radial-gradient(circle at 30% 20%, var(--surface-hover), var(--bg) 70%);
+  background: radial-gradient(circle at 30% 20%, #2b3a8f, #0d1230 70%);
 }
 
 .hero-img {
@@ -633,6 +704,7 @@ button.away.active {
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
+  animation: media-zoom 16s ease-out forwards;
 }
 
 .hero-overlay {
@@ -655,14 +727,14 @@ button.away.active {
   font-size: clamp(40px, 7vw, 68px);
   font-weight: 800;
   line-height: 1.05;
-  color: var(--text-heading);
+  color: var(--on-media);
   margin: 0 0 20px;
   letter-spacing: -0.01em;
 }
 
 .hero-subtitle {
   font-size: clamp(15px, 2vw, 18px);
-  color: var(--text);
+  color: var(--on-media);
   opacity: 0.85;
   max-width: 480px;
   margin: 0 auto 32px;
@@ -679,12 +751,14 @@ button.away.active {
 
 .hero-trust {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--on-media);
+  opacity: 0.75;
 }
 
 .hero-trust .dot {
   margin: 0 10px;
-  color: var(--border);
+  color: var(--on-media);
+  opacity: 0.4;
 }
 
 /* ---- Stat bar ---- */
@@ -846,13 +920,23 @@ button.away.active {
 }
 
 .big-image.img-fallback {
-  background: radial-gradient(circle at 70% 30%, var(--surface-hover), var(--bg) 75%);
+  background: radial-gradient(circle at 70% 30%, #2b3a8f, #0d1230 75%);
 }
 
 .big-image-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: media-zoom 16s ease-out forwards;
+}
+
+@keyframes media-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
 }
 
 .big-image-overlay {
@@ -871,7 +955,7 @@ button.away.active {
 }
 
 .big-image-text h2 {
-  color: var(--text-heading);
+  color: var(--on-media);
   font-size: clamp(24px, 4vw, 38px);
   font-weight: 800;
   margin: 0;
@@ -904,7 +988,6 @@ button.away.active {
   width: 100%;
   height: 100%;
   border: 0;
-  filter: grayscale(0.3) invert(0.92) contrast(0.88);
 }
 
 .salon-card.selected {
@@ -914,7 +997,7 @@ button.away.active {
 
 .salon-card.selected .avatar {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -952,7 +1035,7 @@ button.away.active {
 
 .empty-book button {
   background: var(--accent);
-  color: #1a1408;
+  color: var(--on-accent);
   border: none;
 }
 
@@ -995,6 +1078,13 @@ button.away.active {
   color: var(--text-heading);
   font-size: 16px;
   margin-bottom: 6px;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
 }
 
 .footer-sub {

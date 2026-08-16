@@ -13,7 +13,6 @@ const app = document.getElementById("app");
 const STORAGE_KEY = "navbat_queue_item";
 const STEP_LABELS = ["Usta", "Xizmat", "Vaqt", "Tasdiqlash"];
 
-let usingMock = false;
 let socket = null;
 
 const state = {
@@ -44,7 +43,6 @@ async function safeCall(realFn, mockValue) {
   try {
     return await realFn();
   } catch (e) {
-    usingMock = true;
     return mockValue;
   }
 }
@@ -342,18 +340,24 @@ function renderInfoStep() {
     };
     if (state.mode === "scheduled") body.scheduledFor = state.scheduledFor;
 
+    let item;
+    let isMock = false;
     try {
-      let item = usingMock ? mockCreateQueueItem(body) : await api.createQueueItem(body);
-      if (!usingMock && item.status === "waiting") {
-        item = await enrichWithQueuePosition(item);
-      }
-      item.masterName = state.master.name;
-      item.serviceName = state.service.name;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(item));
-      renderResult(item);
+      item = await api.createQueueItem(body);
     } catch (err) {
-      errorEl.textContent = "Xatolik: navbatga yozib bo'lmadi. Qayta urinib ko'ring.";
+      item = mockCreateQueueItem(body);
+      isMock = true;
     }
+
+    if (!isMock && item.status === "waiting") {
+      item = await enrichWithQueuePosition(item);
+    }
+    item.__mock = isMock;
+    item.masterName = state.master.name;
+    item.serviceName = state.service.name;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(item));
+    localStorage.removeItem("navbat_away");
+    renderResult(item);
   });
 }
 
@@ -380,19 +384,31 @@ function renderScheduledResult(item) {
       <div class="eta-sub" style="margin-bottom:16px;">${escapeHtml(item.masterName ?? "")} — ${escapeHtml(item.serviceName ?? "")}</div>
       <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
       <div class="booking-code">${bookingCode(item._id)}</div>
+      <p class="error-text" id="checkin-error"></p>
       <button id="checkin-btn">Men keldim</button>
     </div>
   `;
 
   document.getElementById("checkin-btn").addEventListener("click", async () => {
-    try {
-      const updated = usingMock ? mockCheckin(item) : { ...item, ...(await api.checkin(item._id)) };
-      const enriched = usingMock ? updated : await enrichWithQueuePosition(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
-      renderResult(enriched);
-    } catch {
-      /* stay on scheduled screen; user can retry */
+    const errorEl = document.getElementById("checkin-error");
+    errorEl.textContent = "";
+    let updated;
+    const isMock = item.__mock;
+    if (item.__mock) {
+      updated = mockCheckin(item);
+    } else {
+      try {
+        updated = { ...item, ...(await api.checkin(item._id)) };
+      } catch {
+        errorEl.textContent = "Xatolik: qayta urinib ko'ring.";
+        return;
+      }
     }
+    const enriched = isMock ? updated : await enrichWithQueuePosition(updated);
+    enriched.__mock = isMock;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
+    localStorage.removeItem("navbat_away");
+    renderResult(enriched);
   });
 }
 
@@ -478,7 +494,7 @@ function renderResult(item) {
     renderResult(item);
   });
 
-  if (!usingMock) {
+  if (!item.__mock) {
     connectSocket(item);
   }
 }
