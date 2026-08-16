@@ -657,14 +657,17 @@ button.away.active {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: var(--accent);
+  background: var(--text-heading);
   color: var(--on-accent);
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 4px;
 }
 
-.brand-mark svg {
-  width: 17px;
-  height: 17px;
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .nav-links {
