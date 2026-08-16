@@ -10,11 +10,13 @@ async function request(path, options) {
 }
 
 export const api = {
-  getMasters: () => request("/api/masters"),
+  getSalons: () => request("/api/salons"),
+  getMasters: (salonId) => request(salonId ? `/api/masters?salonId=${salonId}` : "/api/masters"),
   getServices: () => request("/api/services"),
   createQueueItem: (body) =>
     request("/api/queue", { method: "POST", body: JSON.stringify(body) }),
   getMasterQueue: (masterId) => request(`/api/queue/${masterId}`),
+  checkin: (id) => request(`/api/queue/${id}/checkin`, { method: "POST" }),
   setStatus: (id, status) =>
     request(`/api/queue/${id}/status`, {
       method: "POST",

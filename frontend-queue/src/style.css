@@ -42,7 +42,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   padding: 24px;
 }
 
@@ -229,4 +229,155 @@ button.away.active {
   border-radius: 12px;
   border: 2px solid var(--accent);
   line-height: 0;
+}
+
+/* ---- Wizard / landing flow ---- */
+
+.wizard {
+  width: 100%;
+}
+
+.wizard-back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 0 0 16px;
+  width: auto;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wizard-back:hover {
+  color: var(--accent);
+  background: none;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.progress-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.progress-dots span.active {
+  background: var(--accent);
+}
+
+.step-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.step-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.option-card:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+.option-card .avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--accent-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.option-card .option-title {
+  color: var(--text-heading);
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.option-card .option-sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mode-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.mode-btn:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.mode-btn .mode-title {
+  color: var(--text-heading);
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.mode-btn .mode-sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.scheduled-card {
+  text-align: center;
+}
+
+.scheduled-time {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 12px 0;
 }
