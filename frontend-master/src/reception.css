@@ -81,3 +81,71 @@
   color: var(--text-secondary);
   font-size: 13px;
 }
+
+.masters-status {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.masters-status h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-heading);
+}
+
+.masters-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.master-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.master-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.master-status-row.is-on .master-status-dot {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.master-status-row.is-off .master-status-dot {
+  background: var(--text-disabled);
+}
+
+.master-status-name {
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.master-status-salon {
+  color: var(--text-secondary);
+  font-size: 12px;
+  flex: 1;
+}
+
+.master-status-row.is-on .master-status-label {
+  color: var(--success);
+}
+
+.master-status-row.is-off .master-status-label {
+  color: var(--text-disabled);
+}
+
+.master-status-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

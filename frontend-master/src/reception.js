@@ -14,9 +14,11 @@ const els = {
   whenRadios: document.querySelectorAll('input[name="when"]'),
   list: document.getElementById("reception-list"),
   offline: document.getElementById("offline-banner"),
+  mastersStatus: document.getElementById("masters-status-list"),
 };
 
 let masters = [];
+let salonsById = {};
 let items = [];
 
 const STATUS_LABELS = {
@@ -54,6 +56,26 @@ function renderMasterOptions(salonId) {
     : `<option value="" disabled selected>Bu salonda hech kim on line emas</option>`;
 }
 
+function renderMastersStatus() {
+  if (!masters.length) {
+    els.mastersStatus.innerHTML = `<p class="empty-state">Ustalar topilmadi</p>`;
+    return;
+  }
+  els.mastersStatus.innerHTML = masters
+    .map((m) => {
+      const salonName = salonsById[m.salonId] ? escapeHtml(salonsById[m.salonId]) : "";
+      return `
+        <div class="master-status-row ${m.onDuty ? "is-on" : "is-off"}">
+          <span class="master-status-dot"></span>
+          <span class="master-status-name">${escapeHtml(m.name)}</span>
+          <span class="master-status-salon">${salonName}</span>
+          <span class="master-status-label">${m.onDuty ? "on line" : "off line"}</span>
+        </div>
+      `;
+    })
+    .join("");
+}
+
 async function loadCatalog() {
   const [salons, allMasters, services] = await Promise.all([
     apiFetch("/api/salons"),
@@ -61,6 +83,7 @@ async function loadCatalog() {
     apiFetch("/api/services"),
   ]);
   masters = allMasters;
+  salonsById = Object.fromEntries(salons.map((s) => [s._id, s.name]));
 
   els.salon.innerHTML = salons
     .map((s) => `<option value="${s._id}">${escapeHtml(s.name)}</option>`)
@@ -70,6 +93,7 @@ async function loadCatalog() {
     .join("");
 
   if (salons[0]) renderMasterOptions(salons[0]._id);
+  renderMastersStatus();
 }
 
 els.salon.addEventListener("change", (e) => renderMasterOptions(e.target.value));
@@ -123,6 +147,19 @@ async function loadQueue() {
   }
 }
 
+// Duty toggles don't emit a socket event (they're not a queue change), so
+// poll them on a light interval — good enough freshness for a reception
+// screen, no need for a dedicated socket event just for this.
+async function refreshMastersStatus() {
+  try {
+    masters = await apiFetch("/api/masters");
+    renderMastersStatus();
+  } catch (err) {
+    setOffline(true);
+  }
+}
+setInterval(refreshMastersStatus, 15000);
+
 async function checkin(id) {
   try {
     await apiFetch(`/api/queue/${id}/checkin`, { method: "POST" });
@@ -132,9 +169,12 @@ async function checkin(id) {
   }
 }
 
-async function markPaid(id) {
+async function markPaid(id, method) {
   try {
-    await apiFetch(`/api/queue/${id}/pay`, { method: "POST" });
+    await apiFetch(`/api/queue/${id}/pay`, {
+      method: "POST",
+      body: JSON.stringify({ method }),
+    });
     await loadQueue();
   } catch (err) {
     setOffline(true);
@@ -163,11 +203,12 @@ function render() {
         item.status === "scheduled"
           ? `<button class="btn btn-primary" data-checkin="${item._id}">Keldi</button>`
           : "";
-      const payBtn = !item.paid
-        ? `<button class="btn btn-success" data-pay="${item._id}">To'landi deb belgilash</button>`
+      const payButtons = !item.paid
+        ? `<button class="btn btn-success" data-pay="${item._id}" data-method="cash">💵 Naqd</button>
+           <button class="btn btn-success" data-pay="${item._id}" data-method="card">💳 Karta</button>`
         : "";
       const paidBadge = item.paid
-        ? `<span class="status-badge status-paid">To'langan</span>`
+        ? `<span class="status-badge status-paid">To'langan${item.paymentMethod ? ` · ${item.paymentMethod === "card" ? "💳" : "💵"}` : ""}</span>`
         : `<span class="status-badge status-unpaid">To'lanmagan</span>`;
 
       return `
@@ -181,7 +222,7 @@ function render() {
             ${paidBadge}
           </div>
           <div class="reception-master">${escapeHtml(item.masterName || "")}</div>
-          ${checkinBtn || payBtn ? `<div class="queue-actions">${checkinBtn}${payBtn}</div>` : ""}
+          ${checkinBtn || payButtons ? `<div class="queue-actions">${checkinBtn}${payButtons}</div>` : ""}
         </div>
       `;
     })
@@ -198,7 +239,7 @@ els.list.addEventListener("click", (e) => {
   const payBtn = e.target.closest("button[data-pay]");
   if (payBtn) {
     payBtn.disabled = true;
-    markPaid(payBtn.dataset.pay);
+    markPaid(payBtn.dataset.pay, payBtn.dataset.method);
   }
 });
 
