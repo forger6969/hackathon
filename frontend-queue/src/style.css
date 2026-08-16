@@ -216,3 +216,17 @@ button.away.active {
   font-size: 13px;
   min-height: 16px;
 }
+
+.qr-card {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.qr-box {
+  display: inline-block;
+  padding: 16px;
+  background: var(--text);
+  border-radius: 12px;
+  border: 2px solid var(--accent);
+  line-height: 0;
+}
