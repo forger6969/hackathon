@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
   console.log('client connected', socket.id);
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 
 connectDB().then(() => {
   server.listen(PORT, () => console.log(`Navbat backend running on ${PORT}`));

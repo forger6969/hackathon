@@ -91,7 +91,7 @@ Socket.io: любой клиент подключается на тот же `AP
 ## Переменные окружения (`/backend/.env`, не коммитить)
 
 ```
-PORT=5000
+PORT=5050
 MONGODB_URI=...       # MongoDB Atlas, придёт от Saidazim в личку
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
@@ -99,7 +99,7 @@ CLOUDINARY_API_SECRET=
 SALON_ID=salon1
 ```
 
-Фронтенды: `VITE_API_URL=http://localhost:5000` для разработки,
+Фронтенды: `VITE_API_URL=http://localhost:5050` для разработки,
 `VITE_API_URL=https://<render-url>` перед сборкой финальной версии.
 
 ## Деплой
