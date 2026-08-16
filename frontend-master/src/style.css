@@ -1,22 +1,23 @@
 :root {
-  /* TailAdmin-style light theme */
-  --bg: #f9fafb;
-  --surface: #ffffff;
-  --surface-hover: #f9fafb;
-  --border: #e5e7eb;
-  --text: #1f2937;
-  --text-heading: #101828;
-  --text-secondary: #667085;
-  --text-disabled: #98a2b3;
-  --accent: #465fff;
-  --accent-hover: #3641f5;
-  --accent-bright: #465fff;
-  --accent-soft: #eef2ff;
-  --success: #12b76a;
-  --success-soft: #ecfdf3;
-  --error: #f04438;
-  --error-soft: #fef3f2;
-  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  /* Milk/cream light theme, gold accent — matches the owner dashboard's
+     brand instead of a generic light-SaaS blue. */
+  --bg: #faf6ec;
+  --surface: #fffdf8;
+  --surface-hover: #f5efe0;
+  --border: #e8dfc8;
+  --text: #3a2f1f;
+  --text-heading: #241b0e;
+  --text-secondary: #8a7a5c;
+  --text-disabled: #c4b79a;
+  --accent: #c9a45c;
+  --accent-hover: #b8924a;
+  --accent-bright: #c9a45c;
+  --accent-soft: #f3e7c9;
+  --success: #4c8b5b;
+  --success-soft: #e6f2e6;
+  --error: #b0524a;
+  --error-soft: #f7e4e1;
+  --shadow-card: 0 1px 3px rgba(58, 40, 10, 0.08), 0 1px 2px rgba(58, 40, 10, 0.05);
 }
 
 * {
@@ -430,7 +431,7 @@ body {
 
 .btn-primary {
   background: var(--accent);
-  color: #ffffff;
+  color: #241b0e;
 }
 
 .btn-primary:hover:not(:disabled) {
