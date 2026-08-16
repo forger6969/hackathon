@@ -334,7 +334,6 @@ function renderInfoStep() {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn.disabled) return;
     submitBtn.disabled = true;
-    const originalLabel = submitBtn.textContent;
     submitBtn.textContent = "Yuborilmoqda...";
 
     const errorEl = document.getElementById("info-error");
@@ -377,16 +376,18 @@ function bookingCode(id) {
   return (id ?? "").toString().slice(-6).toUpperCase();
 }
 
-function renderBookingQR(canvasId, item) {
+// Reception scans this with the camera (jsQR) to jump straight to the
+// booking; the text code under it is just a manual-entry fallback.
+// Must encode the short bookingCode (not the raw _id) - that's what
+// reception's scanner looks up against.
+function drawBookingQr(canvasId, code) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  QRCode.toCanvas(canvas, item._id ?? "", {
-    width: 88,
+  QRCode.toCanvas(canvas, code, {
+    width: 160,
     margin: 1,
     color: { dark: "#101828", light: "#ffffff" },
-  }).catch(() => {
-    canvas.replaceWith(document.createTextNode(""));
-  });
+  }).catch(() => {});
 }
 
 function renderScheduledResult(item) {
@@ -404,16 +405,14 @@ function renderScheduledResult(item) {
       <div class="eta">Siz yozildingiz</div>
       <div class="scheduled-time">${label}</div>
       <div class="eta-sub" style="margin-bottom:16px;">${escapeHtml(item.masterName ?? "")} — ${escapeHtml(item.serviceName ?? "")}</div>
-      <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
-      <div class="booking-code-row">
-        <div class="booking-code">${bookingCode(item._id)}</div>
-        <canvas id="scheduled-qr" class="booking-qr"></canvas>
-      </div>
+      <div class="booking-code-label">QR kodni ressepshnga ko'rsating</div>
+      <div class="qr-box"><canvas id="booking-qr-canvas"></canvas></div>
+      <div class="booking-code">${bookingCode(item._id)}</div>
       <p class="error-text" id="checkin-error"></p>
       <button id="checkin-btn">Men keldim</button>
     </div>
   `;
-  renderBookingQR("scheduled-qr", item);
+  drawBookingQr("booking-qr-canvas", bookingCode(item._id));
 
   document.getElementById("checkin-btn").addEventListener("click", async (e) => {
     const btn = e.currentTarget;
@@ -530,11 +529,9 @@ function renderResult(item) {
       <div class="eta-sub">taxminiy kutish vaqti</div>
       <div class="status-pill ${item.status}">${statusLabel(item.status)}</div>
       ${item.paid ? `<div class="paid-badge">✅ To'lov tasdiqlandi${item.paymentMethod ? ` (${item.paymentMethod === "card" ? "karta" : "naqd"})` : ""}</div>` : ""}
-      <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
-      <div class="booking-code-row">
-        <div class="booking-code booking-code-sm">${bookingCode(item._id)}</div>
-        <canvas id="live-qr" class="booking-qr"></canvas>
-      </div>
+      <div class="booking-code-label">QR kodni ressepshnga ko'rsating</div>
+      <div class="qr-box qr-box-sm"><canvas id="booking-qr-canvas"></canvas></div>
+      <div class="booking-code booking-code-sm">${bookingCode(item._id)}</div>
       <div class="details">
         <div class="detail-row"><span>Ism</span><span>${escapeHtml(item.clientName ?? "—")}</span></div>
         <div class="detail-row"><span>Telefon</span><span>${escapeHtml(item.phone ?? "—")}</span></div>
@@ -544,7 +541,7 @@ function renderResult(item) {
       </button>
     </div>
   `;
-  renderBookingQR("live-qr", item);
+  drawBookingQr("booking-qr-canvas", bookingCode(item._id));
 
   const awayBtn = document.getElementById("away-btn");
   awayBtn.addEventListener("click", () => {

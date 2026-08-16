@@ -86,6 +86,82 @@ router.get('/masters/:id/today', async (req, res) => {
   });
 });
 
+function computeEarned(master, revenue) {
+  if (master.salaryType === 'fixed') return master.salaryFixed / 30;
+  if (master.salaryType === 'percent') return revenue * (master.salaryPercent / 100);
+  return master.salaryFixed / 30 + revenue * (master.salaryPercent / 100);
+}
+
+// Same shape as /today but over an arbitrary window — ?period=today|week|month
+// or explicit ?from=&to= (ISO dates). Period boundaries use local midnight,
+// same convention as the rest of the app (no real shift/payroll-cycle model).
+router.get('/masters/:id/earnings', async (req, res) => {
+  const master = await Master.findById(req.params.id);
+  if (!master) return res.status(404).json({ error: 'not found' });
+
+  let from = req.query.from ? new Date(req.query.from) : null;
+  let to = req.query.to ? new Date(req.query.to) : new Date();
+
+  if (!from) {
+    from = new Date();
+    const period = req.query.period || 'today';
+    if (period === 'week') from.setDate(from.getDate() - 7);
+    else if (period === 'month') from.setDate(from.getDate() - 30);
+    from.setHours(0, 0, 0, 0);
+  }
+
+  const done = await QueueItem.find({
+    masterId: master._id,
+    status: 'done',
+    doneAt: { $gte: from, $lte: to },
+  }).populate('serviceId');
+
+  const revenue = done.reduce((sum, item) => sum + (item.serviceId ? item.serviceId.price : 0), 0);
+  const earned = computeEarned(master, revenue);
+
+  res.json({
+    from,
+    to,
+    clientsServed: done.length,
+    revenue,
+    earned: Math.round(earned),
+    salaryType: master.salaryType,
+  });
+});
+
+// Clients this master has actually served — grouped by phone (falls back to
+// name if phone wasn't given), with visit count and last service. No
+// separate Client model, this is derived straight from QueueItem history.
+router.get('/masters/:id/clients', async (req, res) => {
+  const master = await Master.findById(req.params.id);
+  if (!master) return res.status(404).json({ error: 'not found' });
+
+  const items = await QueueItem.find({
+    masterId: master._id,
+    status: 'done',
+  }).sort({ doneAt: -1 }).populate('serviceId', 'name price');
+
+  const byKey = new Map();
+  for (const item of items) {
+    const key = item.phone || item.clientName;
+    if (!byKey.has(key)) {
+      byKey.set(key, {
+        clientName: item.clientName,
+        phone: item.phone,
+        visits: 0,
+        lastVisit: item.doneAt,
+        lastService: item.serviceId ? item.serviceId.name : null,
+        totalSpent: 0,
+      });
+    }
+    const entry = byKey.get(key);
+    entry.visits += 1;
+    entry.totalSpent += item.serviceId ? item.serviceId.price : 0;
+  }
+
+  res.json(Array.from(byKey.values()));
+});
+
 router.get('/services', async (req, res) => {
   res.json(await Service.find());
 });

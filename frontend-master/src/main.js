@@ -4,20 +4,28 @@ import "./style.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const els = {
-  select: document.getElementById("master-select"),
   list: document.getElementById("queue-list"),
   offline: document.getElementById("offline-banner"),
+  stats: document.getElementById("queue-stats"),
+  todayStats: document.getElementById("today-stats"),
+  indicator: document.getElementById("master-indicator"),
+  indicatorName: document.getElementById("master-indicator-name"),
+  switchBtn: document.getElementById("switch-master-btn"),
   dutyToggle: document.getElementById("duty-toggle"),
 };
 
+const STORAGE_KEY = "navbat_master_id";
+
 let currentMasterId = null;
+let currentMaster = null;
+let mastersList = [];
 let queue = [];
-let mastersById = {};
 
 const STATUS_LABELS = {
   waiting: "Navbatda",
   called: "Chaqirildi",
   in_progress: "Xizmatda",
+  scheduled: "Vaqtga yozilgan",
 };
 
 function setOffline(isOffline) {
@@ -29,58 +37,122 @@ async function apiFetch(path, options = {}) {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
-  if (!res.ok) throw new Error(`API xato: ${res.status}`);
+  if (!res.ok) {
+    const err = new Error(`API xato: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
 
 async function loadMasters() {
-  const masters = await apiFetch("/api/masters");
-  mastersById = Object.fromEntries(masters.map((m) => [m._id, m]));
-  els.select.innerHTML = masters
-    .map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`)
-    .join("");
+  mastersList = await apiFetch("/api/masters");
 
-  const params = new URLSearchParams(location.search);
-  const fromUrl = params.get("masterId");
-  const initial = masters.some((m) => m._id === fromUrl) ? fromUrl : masters[0]?._id;
-
-  if (initial) {
-    els.select.value = initial;
-    switchMaster(initial);
-  } else {
+  if (!mastersList.length) {
     els.list.innerHTML = '<p class="empty-state">Ustalar topilmadi</p>';
+    return;
+  }
+
+  const remembered = mastersList.find((m) => m._id === localStorage.getItem(STORAGE_KEY));
+  if (remembered) {
+    selectMaster(remembered);
+  } else {
+    showLoginScreen();
   }
 }
 
-function switchMaster(masterId) {
-  currentMasterId = masterId;
+// Login: master picks their name, enters their password. Backend checks it
+// against Master.passwordHash (POST /api/masters/login) — every other
+// endpoint (queue, status, reception) stays open per CLAUDE.md, this only
+// gates "who is this master" on the device.
+function showLoginScreen(errorMsg = "") {
+  currentMasterId = null;
+  els.stats.classList.add("hidden");
+  els.indicator.classList.add("hidden");
+  els.list.innerHTML = `
+    <div class="login-screen">
+      <p class="login-screen-title">Kim sifatida kirasiz?</p>
+      <form id="login-form" class="login-form">
+        <select id="login-master-select" class="login-select">
+          ${mastersList.map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`).join("")}
+        </select>
+        <input id="login-password" class="login-password" type="password" placeholder="Parol" autocomplete="current-password" required />
+        ${errorMsg ? `<p class="login-error">${escapeHtml(errorMsg)}</p>` : ""}
+        <button type="submit" class="btn btn-primary login-submit">Kirish</button>
+      </form>
+    </div>
+  `;
+  document.getElementById("login-form").addEventListener("submit", handleLoginSubmit);
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const submitBtn = form.querySelector(".login-submit");
+  const masterId = document.getElementById("login-master-select").value;
+  const password = document.getElementById("login-password").value;
+  const master = mastersList.find((m) => m._id === masterId);
+  if (!master) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Tekshirilmoqda…";
+  try {
+    await apiFetch("/api/masters/login", {
+      method: "POST",
+      body: JSON.stringify({ name: master.name, password }),
+    });
+    selectMaster(master);
+  } catch (err) {
+    showLoginScreen(err.status === 401 ? "Parol noto'g'ri" : "Serverga ulanib bo'lmadi");
+  }
+}
+
+function selectMaster(master) {
+  currentMasterId = master._id;
+  currentMaster = master;
+  localStorage.setItem(STORAGE_KEY, master._id);
+
   const params = new URLSearchParams(location.search);
-  params.set("masterId", masterId);
+  params.set("masterId", master._id);
   history.replaceState(null, "", `?${params}`);
+
+  els.indicatorName.textContent = master.name;
+  els.indicator.classList.remove("hidden");
   renderDutyToggle();
+
   loadQueue();
+  loadTodayStats();
+}
+
+function logoutMaster() {
+  localStorage.removeItem(STORAGE_KEY);
+  currentMaster = null;
+  els.todayStats.classList.add("hidden");
+  const params = new URLSearchParams(location.search);
+  params.delete("masterId");
+  history.replaceState(null, "", location.pathname + (params.toString() ? `?${params}` : ""));
+  showLoginScreen();
 }
 
 function renderDutyToggle() {
-  const master = mastersById[currentMasterId];
-  const onDuty = !!(master && master.onDuty);
+  if (!currentMaster) return;
+  const onDuty = !!currentMaster.onDuty;
   els.dutyToggle.textContent = onDuty ? "Liniyani tugatish" : "Chiqish liniyaga";
   els.dutyToggle.classList.toggle("duty-on", onDuty);
   els.dutyToggle.classList.toggle("duty-off", !onDuty);
 }
 
 async function toggleDuty() {
-  const master = mastersById[currentMasterId];
-  if (!master) return;
-  const nextOnDuty = !master.onDuty;
+  if (!currentMaster) return;
+  const nextOnDuty = !currentMaster.onDuty;
   els.dutyToggle.disabled = true;
   try {
-    const updated = await apiFetch(`/api/masters/${currentMasterId}/duty`, {
+    currentMaster = await apiFetch(`/api/masters/${currentMasterId}/duty`, {
       method: "POST",
       body: JSON.stringify({ onDuty: nextOnDuty }),
     });
-    mastersById[currentMasterId] = updated;
     setOffline(false);
+    loadTodayStats();
   } catch (err) {
     setOffline(true);
   } finally {
@@ -89,7 +161,48 @@ async function toggleDuty() {
   }
 }
 
-els.dutyToggle.addEventListener("click", toggleDuty);
+async function loadTodayStats() {
+  if (!currentMasterId) return;
+  try {
+    const stats = await apiFetch(`/api/masters/${currentMasterId}/today`);
+    renderTodayStats(stats);
+  } catch (err) {
+    // non-critical — leave whatever was last shown, queue polling already
+    // surfaces the offline banner for real connectivity problems
+  }
+}
+
+function renderTodayStats(stats) {
+  els.todayStats.classList.remove("hidden");
+  els.todayStats.innerHTML = `
+    <div class="stat-pill">
+      <span class="stat-value">${stats.clientsServed}</span>
+      <span class="stat-label">Bugun mijoz</span>
+    </div>
+    <div class="stat-pill stat-earned">
+      <span class="stat-value">${formatSum(stats.earned)}</span>
+      <span class="stat-label">Hisoblangan</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-value">${formatHours(stats.hoursWorked)}</span>
+      <span class="stat-label">Ishlagan</span>
+    </div>
+  `;
+}
+
+// hoursWorked comes from the backend as decimal hours (e.g. 1.75) — render
+// as "H soat M daq" per tasks.md's "Ч ч М мин" spec, not a raw decimal.
+function formatHours(hoursWorked) {
+  const totalMin = Math.round((hoursWorked || 0) * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h < 1) return `${m} daq`;
+  return `${h} soat ${m} daq`;
+}
+
+function formatSum(n) {
+  return new Intl.NumberFormat("uz-UZ").format(n || 0);
+}
 
 async function loadQueue() {
   if (!currentMasterId) return;
@@ -147,49 +260,147 @@ function actionsFor(item) {
   // avgServiceTimeMs recalculation on "done" (actualMs = doneAt - calledAt).
   // Skipping straight to in_progress/done would silently break ETA learning.
   if (item.status === "waiting") {
-    return [{ label: "Qabul qildim", to: "called", variant: "btn-primary" }];
+    return [{ label: "Qabul qildim", icon: "✓", to: "called", variant: "btn-primary" }];
   }
   return [
-    { label: "Tayyor", to: "done", variant: "btn-success" },
-    { label: "Kelmadi", to: "skipped", variant: "btn-danger" },
+    { label: "Tayyor", icon: "✔", to: "done", variant: "btn-success" },
+    { label: "Kelmadi", icon: "✕", to: "skipped", variant: "btn-danger" },
   ];
+}
+
+function initials(name = "") {
+  return (name.trim()[0] || "?").toUpperCase();
 }
 
 function render() {
   if (!queue.length) {
-    els.list.innerHTML = "<p class=\"empty-state\">Navbat bo'sh 🎉</p>";
+    els.stats.classList.add("hidden");
+    els.list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">🎉</span>
+        <span>Navbat bo'sh</span>
+        <span class="empty-hint">Yangi mijoz kelganda shu yerda ko'rinadi</span>
+      </div>
+    `;
     return;
   }
 
-  els.list.innerHTML = queue
-    .map((item, i) => {
-      const isActive = i === 0;
-      const actions = isActive ? actionsFor(item) : [];
-      return `
-        <div class="queue-card ${isActive ? "is-active" : "is-pending"}" data-id="${item._id}">
-          <div class="queue-card-head">
-            <span class="queue-position">#${i + 1}</span>
-            <h2 class="queue-client-name">${escapeHtml(item.clientName)}</h2>
-            ${item.eta != null ? `<span class="queue-eta">${formatEta(item.eta)}</span>` : ""}
+  // "scheduled" items keep their original createdAt (booking time), so they
+  // sort into the array wherever they were booked, not where they actually
+  // belong. They aren't part of the live line yet (backend excludes them from
+  // eta/position math, promotes them to "waiting" on their own once due) —
+  // render them as a separate, non-actionable section instead of mixing them
+  // into live queue positions.
+  const liveItems = queue.filter((item) => item.status !== "scheduled");
+  const scheduledItems = queue.filter((item) => item.status === "scheduled");
+  const [current, ...rest] = liveItems;
+
+  renderStats(liveItems.length, scheduledItems.length);
+
+  let html = "";
+  if (current) {
+    html += activeCardHtml(current);
+  }
+  if (rest.length) {
+    html += `<div class="queue-rows">${rest.map((item, i) => queueRowHtml(item, i + 2)).join("")}</div>`;
+  }
+  if (scheduledItems.length) {
+    html += `<h2 class="section-title">Vaqtga yozilganlar</h2><div class="queue-rows">${scheduledItems
+      .map(scheduledRowHtml)
+      .join("")}</div>`;
+  }
+  if (!current && !rest.length && !scheduledItems.length) {
+    html = `
+      <div class="empty-state">
+        <span class="empty-icon">🎉</span>
+        <span>Navbat bo'sh</span>
+      </div>
+    `;
+  }
+
+  els.list.innerHTML = html;
+}
+
+function renderStats(liveCount, scheduledCount) {
+  els.stats.classList.remove("hidden");
+  els.stats.innerHTML = `
+    <div class="stat-pill">
+      <span class="stat-value">${liveCount}</span>
+      <span class="stat-label">Navbatda</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-value">${scheduledCount}</span>
+      <span class="stat-label">Vaqtga yozilgan</span>
+    </div>
+  `;
+}
+
+function activeCardHtml(item) {
+  const actions = actionsFor(item);
+  return `
+    <div class="active-card" data-id="${item._id}">
+      <span class="active-card-label">👤 Hozirgi mijoz</span>
+      <div class="active-card-body">
+        <span class="avatar">${initials(item.clientName)}</span>
+        <div class="active-card-info">
+          <h2 class="active-card-name">${escapeHtml(item.clientName)}</h2>
+          <div class="active-card-badges">
+            <span class="status-badge status-${item.status}">${STATUS_LABELS[item.status] || item.status}</span>
+            ${paymentBadgeHtml(item)}
           </div>
-          <span class="status-badge status-${item.status}">${STATUS_LABELS[item.status] || item.status}</span>
-          <span class="status-badge ${item.paid ? "status-paid" : "status-unpaid"}">${item.paid ? "To'langan" : "To'lanmagan"}</span>
-          ${
-            actions.length
-              ? `<div class="queue-actions">
-                  ${actions
-                    .map(
-                      (a) =>
-                        `<button class="btn ${a.variant}" data-action="${a.to}" data-id="${item._id}">${a.label}</button>`
-                    )
-                    .join("")}
-                </div>`
-              : ""
-          }
         </div>
-      `;
-    })
-    .join("");
+      </div>
+      ${actionsHtml(actions, item._id)}
+    </div>
+  `;
+}
+
+function queueRowHtml(item, position) {
+  return `
+    <div class="queue-row" data-id="${item._id}">
+      <span class="queue-row-position">#${position}</span>
+      <span class="avatar">${initials(item.clientName)}</span>
+      <span class="queue-row-name">${escapeHtml(item.clientName)}</span>
+      <div class="queue-row-meta">
+        <span class="status-badge status-${item.status}">${STATUS_LABELS[item.status] || item.status}</span>
+        ${item.eta != null ? `<span class="queue-row-eta">${formatEta(item.eta)}</span>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function scheduledRowHtml(item) {
+  return `
+    <div class="queue-row is-scheduled" data-id="${item._id}">
+      <span class="queue-row-position">🕒</span>
+      <span class="avatar">${initials(item.clientName)}</span>
+      <span class="queue-row-name">${escapeHtml(item.clientName)}</span>
+      <div class="queue-row-meta">
+        <span class="status-badge status-scheduled">${STATUS_LABELS.scheduled}</span>
+        <span class="queue-row-eta">${formatScheduledFor(item.scheduledFor)}</span>
+      </div>
+    </div>
+  `;
+}
+
+// `paid` comes from the reception's "mark as paid" flow (POST /api/queue/:id/pay)
+// — advisory only, no enforcement — the master just needs to see it at a glance.
+function paymentBadgeHtml(item) {
+  const label = item.paid ? `To'landi${item.paymentMethod ? ` (${paymentMethodLabel(item.paymentMethod)})` : ""}` : "To'lanmagan";
+  return `<span class="status-badge ${item.paid ? "status-paid" : "status-unpaid"}">${label}</span>`;
+}
+
+function paymentMethodLabel(method) {
+  return method === "card" ? "karta" : "naqd";
+}
+
+function actionsHtml(actions, id) {
+  return `<div class="queue-actions">${actions
+    .map(
+      (a) =>
+        `<button class="btn ${a.variant}" data-action="${a.to}" data-id="${id}"><span aria-hidden="true">${a.icon}</span> ${a.label}</button>`
+    )
+    .join("")}</div>`;
 }
 
 // Backend sends `eta` as milliseconds-until-turn (idx * avgServiceTimeMs),
@@ -201,6 +412,12 @@ function formatEta(etaMs) {
   return `~${totalMin} daq`;
 }
 
+function formatScheduledFor(dateStr) {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
 function escapeHtml(str = "") {
   return String(str).replace(
     /[&<>"']/g,
@@ -209,13 +426,15 @@ function escapeHtml(str = "") {
 }
 
 els.list.addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-action]");
-  if (!btn) return;
-  btn.disabled = true;
-  setStatus(btn.dataset.id, btn.dataset.action);
+  const actionBtn = e.target.closest("button[data-action]");
+  if (actionBtn) {
+    actionBtn.disabled = true;
+    setStatus(actionBtn.dataset.id, actionBtn.dataset.action);
+  }
 });
 
-els.select.addEventListener("change", (e) => switchMaster(e.target.value));
+els.switchBtn.addEventListener("click", logoutMaster);
+els.dutyToggle.addEventListener("click", toggleDuty);
 
 function connectSocket() {
   const socket = io(API_URL, { reconnection: true });
@@ -226,6 +445,7 @@ function connectSocket() {
     if (data.masterId !== currentMasterId) return;
     queue = data.queue;
     render();
+    loadTodayStats();
   });
 }
 

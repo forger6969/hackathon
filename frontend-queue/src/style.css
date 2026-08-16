@@ -539,6 +539,16 @@ button.away.active {
   margin-bottom: 6px;
 }
 
+.qr-box-sm {
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.qr-box-sm canvas {
+  width: 120px;
+  height: 120px;
+}
+
 .booking-code {
   display: inline-block;
   font-family: "Courier New", monospace;
@@ -557,26 +567,6 @@ button.away.active {
   font-size: 20px;
   padding: 8px 16px;
   margin-bottom: 16px;
-}
-
-.booking-code-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-bottom: 24px;
-}
-
-.booking-code-row .booking-code {
-  margin-bottom: 0;
-}
-
-.booking-qr {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 4px;
-  background: #ffffff;
-  flex-shrink: 0;
 }
 
 .paid-badge {

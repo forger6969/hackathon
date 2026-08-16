@@ -9,17 +9,31 @@
   <body>
     <div id="app">
       <header class="topbar">
-        <h1>Navbat</h1>
-        <div class="master-picker">
-          <select id="master-select"></select>
-          <button id="duty-toggle" class="btn duty-off">Chiqish liniyaga</button>
+        <div class="topbar-title">
+          <h1>Navbat</h1>
+          <p class="topbar-subtitle">Usta paneli</p>
+        </div>
+        <div id="master-indicator" class="master-indicator hidden">
+          <div class="master-indicator-row">
+            <span id="master-indicator-name" class="master-indicator-name"></span>
+            <button id="switch-master-btn" class="switch-link" type="button">Almashtirish</button>
+          </div>
+          <button id="duty-toggle" class="duty-toggle" type="button"></button>
         </div>
       </header>
 
-      <div id="offline-banner" class="offline-banner hidden">Aloqa yo'q — qayta urinilmoqda…</div>
+      <div id="today-stats" class="today-stats hidden"></div>
+
+      <div id="queue-stats" class="queue-stats hidden"></div>
+
+      <div id="offline-banner" class="offline-banner hidden">
+        <span class="offline-dot"></span> Aloqa yo'q — qayta urinilmoqda…
+      </div>
 
       <main id="queue-list" class="queue-list">
-        <p class="empty-state">Yuklanmoqda…</p>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
       </main>
     </div>
     <script type="module" src="/src/main.js"></script>
