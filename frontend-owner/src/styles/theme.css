@@ -155,15 +155,17 @@ body {
 }
 .sidebar-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .sidebar-mark {
-  width: 32px; height: 32px;
-  color: var(--primary);
+  width: 40px; height: 40px;
   flex-shrink: 0;
-  background: rgba(60, 80, 224, 0.12);
-  border-radius: 10px;
-  padding: 5px;
+  background: rgba(60, 80, 224, 0.14);
+  border-radius: 12px;
+  padding: 4px;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px -4px rgba(60, 80, 224, 0.4);
 }
+.sidebar-mark img { display: block; max-width: 100%; max-height: 100%; }
 .sidebar-brand-text { min-width: 0; overflow: hidden; }
 .sidebar-brand-name {
   color: var(--text-inverse);
@@ -508,13 +510,13 @@ body {
 
 /* ── Page container ─────────────────────── */
 .page-container {
-  padding: 28px 32px 40px;
-  max-width: 1440px;
+  padding: 32px 36px 48px;
+  max-width: 1520px;
   margin: 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 .page-header {
   display: flex;
@@ -1812,11 +1814,11 @@ select.field-input {
 .hero-revenue {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: 20px;
+  gap: 32px;
   background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 28px 32px;
+  padding: 32px 36px;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   position: relative;
   overflow: hidden;
@@ -1872,7 +1874,7 @@ select.field-input {
 .hero-split-label { color: var(--text-secondary); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
 .hero-split-val { color: var(--text-strong); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
 
-.hero-revenue-side { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
+.hero-revenue-side { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
 .mini-kpi {
   padding: 14px 18px;
   border: 1px solid var(--border);
@@ -1888,7 +1890,7 @@ select.field-input {
 .mini-kpi--ok     .mini-kpi-value { color: var(--success); }
 
 /* ── Section head ──────────────────────── */
-.dash-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
+.dash-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; padding: 0 4px; }
 .dash-section-title { margin: 0; color: var(--text-strong); font-size: 18px; font-weight: 800; letter-spacing: -0.015em; }
 .dash-section-sub   { margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }
 .dash-link { color: var(--primary); font-size: 13px; font-weight: 700; background: none; border: 0; cursor: pointer; }
@@ -1897,21 +1899,22 @@ select.field-input {
 /* ── Master live card (главное!) ──────── */
 .masters-live-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
 }
 .master-live-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   cursor: pointer;
   transition: border-color .18s, transform .18s, box-shadow .18s;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 .master-live-card::before {
   content: '';
@@ -2000,19 +2003,21 @@ select.field-input {
   font-weight: 700;
   margin-bottom: 8px;
 }
-.mlc-waiting-avatars { display: flex; gap: -2px; }
+.mlc-waiting-avatars { display: flex; }
 .mlc-mini-avatar {
-  width: 26px; height: 26px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  background: var(--primary-tint);
+  background: linear-gradient(135deg, var(--primary-tint), #DDE5FF);
   color: var(--primary);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   display: grid; place-items: center;
   border: 2px solid var(--surface);
-  margin-left: -6px;
+  margin-left: -8px;
+  transition: transform .15s, z-index 0s;
 }
 .mlc-mini-avatar:first-child { margin-left: 0; }
+.mlc-mini-avatar:hover { transform: translateY(-2px); z-index: 1; }
 
 /* ── Dash clean cards (для нижних секций) ─ */
 .dash-card-clean {
@@ -2020,8 +2025,10 @@ select.field-input {
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow .2s;
 }
+.dash-card-clean:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07); }
 .dash-clean-head {
   padding: 18px 20px 14px;
   border-bottom: 1px solid var(--border);

@@ -237,13 +237,21 @@ export default function Overview() {
   });
   window.addEventListener('route:changed', () => off?.(), { once: true });
 
-  return el('div', { style: { display: 'flex', flexDirection: 'column', gap: '24px' } }, [
+  const wrap = el('div.overview-page', { style: { display: 'flex', flexDirection: 'column', gap: '32px' } }, [
     header,
     hero,
     mastersSection,
     twoCol,
     paymentsAndStock,
   ]);
+  // Staggered fade-in animation
+  wrap.querySelectorAll('.hero-revenue, .dash-section, .section-grid').forEach((node, i) => {
+    node.style.opacity = '0';
+    node.style.transform = 'translateY(10px)';
+    node.style.transition = 'opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1)';
+    setTimeout(() => { node.style.opacity = '1'; node.style.transform = 'translateY(0)'; }, 60 * i);
+  });
+  return wrap;
 }
 
 // ── Master live card (главный компонент страницы) ──
