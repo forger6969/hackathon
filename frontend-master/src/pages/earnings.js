@@ -1,17 +1,21 @@
 import { state, apiFetch } from "../state.js";
 import { formatSum } from "../format.js";
-import { mockMonthlyEarnings } from "../mock.js";
 
 const SALARY_TYPE_LABELS = { fixed: "Fiksirlangan", percent: "Foizli", hybrid: "Aralash" };
+const PERIODS = [
+  { id: "today", label: "Bugun" },
+  { id: "week", label: "7 kun" },
+  { id: "month", label: "Bu oy" },
+];
 
 export function renderEarnings(root) {
   const master = state.currentMaster;
-  let today = { revenue: 0, earned: 0 };
-  const months = mockMonthlyEarnings(master);
+  let period = "today";
+  let data = { clientsServed: 0, revenue: 0, earned: 0 };
 
   async function load() {
     try {
-      today = await apiFetch(`/api/masters/${master._id}/today`);
+      data = await apiFetch(`/api/masters/${master._id}/earnings?period=${period}`);
     } catch (err) {
       // offline banner handles connectivity feedback
     }
@@ -24,13 +28,13 @@ export function renderEarnings(root) {
     }
     if (master.salaryType === "percent") {
       return `
-        <div class="earnings-breakdown-row"><span>Bugungi tushum</span><span>${formatSum(today.revenue)} so'm</span></div>
+        <div class="earnings-breakdown-row"><span>Davr tushumi</span><span>${formatSum(data.revenue)} so'm</span></div>
         <div class="earnings-breakdown-row"><span>Foiz</span><span>${master.salaryPercent}%</span></div>
       `;
     }
     return `
       <div class="earnings-breakdown-row"><span>Fiksirlangan qism</span><span>${formatSum(master.salaryFixed)} so'm</span></div>
-      <div class="earnings-breakdown-row"><span>Bugungi tushum</span><span>${formatSum(today.revenue)} so'm</span></div>
+      <div class="earnings-breakdown-row"><span>Davr tushumi</span><span>${formatSum(data.revenue)} so'm</span></div>
       <div class="earnings-breakdown-row"><span>Foiz qism</span><span>${master.salaryPercent}%</span></div>
     `;
   }
@@ -44,35 +48,28 @@ export function renderEarnings(root) {
         </div>
       </div>
 
+      <div class="tab-row">
+        ${PERIODS.map((p) => `<button class="tab-btn ${p.id === period ? "is-active" : ""}" data-period="${p.id}" type="button">${p.label}</button>`).join("")}
+      </div>
+
       <div class="active-card earnings-today-card">
-        <span class="active-card-label">💰 Bugun hisoblangan</span>
-        <h2 class="active-card-name earnings-today-value">${formatSum(today.earned)} so'm</h2>
+        <span class="active-card-label">💰 Hisoblangan</span>
+        <h2 class="active-card-name earnings-today-value">${formatSum(data.earned)} so'm</h2>
+        <p class="confirm-line">${data.clientsServed} mijoz xizmat qildingiz</p>
         <div class="earnings-breakdown">
           ${salaryLineHtml()}
         </div>
       </div>
 
-      <h2 class="section-title">Oylik tarix</h2>
-      <p class="mock-note">Namuna ma'lumot — backend'da oylik hisob-kitob tarixi hali yo'q</p>
-      <div class="earnings-history">
-        ${months
-          .map(
-            (m) => `
-              <div class="earnings-history-row">
-                <div class="earnings-history-month">
-                  <span class="earnings-history-label">${m.label}</span>
-                  <span class="status-badge ${m.status === "To'landi" ? "status-paid" : "status-scheduled"}">${m.status}</span>
-                </div>
-                <div class="earnings-history-numbers">
-                  <span>Tushum: ${formatSum(m.revenue)} so'm</span>
-                  <span class="earnings-history-earned">Hisoblangan: ${formatSum(m.earned)} so'm</span>
-                </div>
-              </div>
-            `
-          )
-          .join("")}
-      </div>
+      <p class="mock-note">Oylar bo'yicha to'liq to'lov tarixi (avgust-dan oldingi) hozircha backend'da yo'q — faqat joriy davr ko'rsatiladi</p>
     `;
+
+    root.querySelectorAll("[data-period]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        period = btn.dataset.period;
+        load();
+      })
+    );
   }
 
   load();

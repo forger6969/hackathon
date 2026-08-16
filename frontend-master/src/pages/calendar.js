@@ -1,17 +1,30 @@
 import { state, apiFetch } from "../state.js";
 import { escapeHtml, statusBadgeHtml, paymentBadgeHtml } from "../format.js";
-import { mockBookings } from "../mock.js";
 
 const WEEKDAYS = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
+
+function startOfWeek() {
+  const d = new Date();
+  const day = (d.getDay() + 6) % 7; // Monday = 0
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - day);
+  return d;
+}
 
 export function renderCalendar(root) {
   const master = state.currentMaster;
   let view = "day";
   let queue = [];
+  let history = [];
 
   async function load() {
     try {
-      queue = await apiFetch(`/api/queue/${master._id}`);
+      const [q, h] = await Promise.all([
+        apiFetch(`/api/queue/${master._id}`),
+        apiFetch(`/api/queue/${master._id}/history`),
+      ]);
+      queue = q;
+      history = h;
     } catch (err) {
       // offline banner handles connectivity feedback
     }
@@ -47,6 +60,42 @@ export function renderCalendar(root) {
       }));
 
     return [...live, ...scheduled].sort((a, b) => a.sortKey - b.sortKey);
+  }
+
+  function weekBuckets() {
+    const start = startOfWeek();
+    const buckets = WEEKDAYS.map((label, i) => {
+      const dayStart = new Date(start);
+      dayStart.setDate(start.getDate() + i);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayStart.getDate() + 1);
+      return { label, dayStart, dayEnd, items: [] };
+    });
+
+    const put = (date, entry) => {
+      const bucket = buckets.find((b) => date >= b.dayStart && date < b.dayEnd);
+      if (bucket) bucket.items.push(entry);
+    };
+
+    for (const h of history) {
+      const date = new Date(h.doneAt || h.createdAt);
+      put(date, {
+        time: date.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
+        clientName: h.clientName,
+        sortKey: date.getTime(),
+      });
+    }
+    for (const q of queue.filter((q) => q.status === "scheduled")) {
+      const date = new Date(q.scheduledFor);
+      put(date, {
+        time: date.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }),
+        clientName: q.clientName,
+        sortKey: date.getTime(),
+      });
+    }
+
+    buckets.forEach((b) => b.items.sort((a, b2) => a.sortKey - b2.sortKey));
+    return buckets;
   }
 
   function paint() {
@@ -102,27 +151,32 @@ export function renderCalendar(root) {
   }
 
   function weekViewHtml() {
+    const buckets = weekBuckets();
     return `
-      <p class="mock-note">Hafta ko'rinishi hozircha namuna ma'lumot bilan (backend haftalik jadval bermaydi)</p>
       <div class="week-grid">
-        ${WEEKDAYS.map((day, i) => {
-          const items = mockBookings(master._id, "week" + i, 2 + (i % 3));
-          return `
-            <div class="week-day-card">
-              <span class="week-day-title">${day}</span>
-              ${items
-                .map(
-                  (it) => `
-                    <div class="week-day-item">
-                      <span class="week-day-time">${it.time}</span>
-                      <span class="week-day-name">${escapeHtml(it.clientName)}</span>
-                    </div>
-                  `
-                )
-                .join("")}
-            </div>
-          `;
-        }).join("")}
+        ${buckets
+          .map(
+            (b) => `
+              <div class="week-day-card">
+                <span class="week-day-title">${b.label}</span>
+                ${
+                  b.items.length
+                    ? b.items
+                        .map(
+                          (it) => `
+                            <div class="week-day-item">
+                              <span class="week-day-time">${it.time}</span>
+                              <span class="week-day-name">${escapeHtml(it.clientName)}</span>
+                            </div>
+                          `
+                        )
+                        .join("")
+                    : '<span class="week-day-empty">—</span>'
+                }
+              </div>
+            `
+          )
+          .join("")}
       </div>
     `;
   }

@@ -1,6 +1,5 @@
 import { state, apiFetch, onQueueUpdate } from "../state.js";
-import { escapeHtml, initials, formatSum, formatEta, formatScheduledFor, statusBadgeHtml, paymentBadgeHtml } from "../format.js";
-import { mockBookings } from "../mock.js";
+import { escapeHtml, initials, formatSum, formatEta, formatScheduledFor, formatTime, statusBadgeHtml, paymentBadgeHtml } from "../format.js";
 
 const DATE_TABS = [
   { id: "today", label: "Bugun" },
@@ -18,36 +17,88 @@ const STATUS_TABS = [
   { id: "cancelled", label: "Bekor qilindi" },
 ];
 
+function startOfDay(offsetDays = 0) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + offsetDays);
+  return d;
+}
+
 export function renderBookings(root) {
   const master = state.currentMaster;
   let dateTab = "today";
   let statusTab = "all";
   let queue = [];
+  let history = [];
 
   async function load() {
     try {
-      queue = await apiFetch(`/api/queue/${master._id}`);
+      const [q, h] = await Promise.all([
+        apiFetch(`/api/queue/${master._id}`),
+        apiFetch(`/api/queue/${master._id}/history`),
+      ]);
+      queue = q;
+      history = h;
     } catch (err) {
       // offline banner handles connectivity feedback
     }
     paint();
   }
 
-  function realRows() {
-    return queue.map((item) => ({
-      _id: item._id,
-      clientName: item.clientName,
-      status: item.status,
-      paid: item.paid,
-      paymentMethod: item.paymentMethod,
-      eta: item.eta,
-      scheduledFor: item.scheduledFor,
-      isMock: false,
+  function normalizedRows() {
+    const live = queue
+      .filter((q) => q.status !== "scheduled")
+      .map((q) => ({
+        _id: q._id,
+        clientName: q.clientName,
+        status: q.status,
+        paid: q.paid,
+        paymentMethod: q.paymentMethod,
+        eta: q.eta,
+        relevantDate: new Date(), // live items are inherently "now/today"
+      }));
+
+    const scheduled = queue
+      .filter((q) => q.status === "scheduled")
+      .map((q) => ({
+        _id: q._id,
+        clientName: q.clientName,
+        status: q.status,
+        paid: q.paid,
+        paymentMethod: q.paymentMethod,
+        scheduledFor: q.scheduledFor,
+        relevantDate: new Date(q.scheduledFor),
+      }));
+
+    const past = history.map((h) => ({
+      _id: h._id,
+      clientName: h.clientName,
+      status: h.status,
+      paid: h.paid,
+      paymentMethod: h.paymentMethod,
+      serviceName: h.serviceId?.name,
+      servicePrice: h.serviceId?.price,
+      doneAt: h.doneAt,
+      relevantDate: new Date(h.doneAt || h.createdAt),
     }));
+
+    return [...live, ...scheduled, ...past];
   }
 
-  function mockRows() {
-    return mockBookings(master._id, dateTab).map((b) => ({ ...b, isMock: true }));
+  function filterByDate(rows) {
+    if (dateTab === "today") {
+      const start = startOfDay(0);
+      const end = startOfDay(1);
+      return rows.filter((r) => r.relevantDate >= start && r.relevantDate < end);
+    }
+    if (dateTab === "tomorrow") {
+      const start = startOfDay(1);
+      const end = startOfDay(2);
+      return rows.filter((r) => r.relevantDate >= start && r.relevantDate < end);
+    }
+    const start = startOfDay(0);
+    const end = startOfDay(7);
+    return rows.filter((r) => r.relevantDate >= start && r.relevantDate < end);
   }
 
   function filterByStatus(rows) {
@@ -59,27 +110,25 @@ export function renderBookings(root) {
   }
 
   function paint() {
-    const rows = filterByStatus(dateTab === "today" ? realRows() : mockRows());
+    const rows = filterByStatus(filterByDate(normalizedRows())).sort((a, b) => a.relevantDate - b.relevantDate);
 
     root.innerHTML = `
       <div class="page-header">
         <div>
           <h1 class="page-title">Mening yozuvlarim</h1>
-          <p class="page-subtitle">${master.name}ga tegishli barcha bandlar</p>
+          <p class="page-subtitle">${escapeHtml(master.name)}ga tegishli barcha bandlar</p>
         </div>
       </div>
 
       <div class="tab-row">
-        ${DATE_TABS.map((t) => tabBtn(t, dateTab, "data-date-tab")).join("")}
+        ${DATE_TABS.map((t) => `<button class="tab-btn ${t.id === dateTab ? "is-active" : ""}" data-date-tab="${t.id}" type="button">${t.label}</button>`).join("")}
       </div>
       <div class="tab-row tab-row-secondary">
-        ${STATUS_TABS.map((t) => tabBtn(t, statusTab, "data-status-tab")).join("")}
+        ${STATUS_TABS.map((t) => `<button class="tab-btn ${t.id === statusTab ? "is-active" : ""}" data-status-tab="${t.id}" type="button">${t.label}</button>`).join("")}
       </div>
 
-      ${dateTab !== "today" ? '<p class="mock-note">Bu sana uchun ma\'lumot backend\'dan hali kelmaydi — namuna ko\'rinish</p>' : ""}
-
       <div class="booking-list">
-        ${rows.length ? rows.map(bookingRowHtml).join("") : emptyHtml()}
+        ${rows.length ? rows.map(bookingRowHtml).join("") : `<div class="empty-state"><span class="empty-icon">📋</span><span>Bu bo'lim uchun yozuvlar yo'q</span></div>`}
       </div>
     `;
 
@@ -97,20 +146,13 @@ export function renderBookings(root) {
     );
   }
 
-  function tabBtn(t, activeId, attr) {
-    const key = attr === "data-date-tab" ? "dateTab" : "statusTab";
-    return `<button class="tab-btn ${t.id === activeId ? "is-active" : ""}" ${attr}="${t.id}" type="button">${t.label}</button>`;
-  }
-
   function bookingRowHtml(item) {
-    const timeLabel = item.isMock
-      ? item.time
-      : item.status === "scheduled"
+    const timeLabel = item.doneAt
+      ? formatTime(item.doneAt)
+      : item.scheduledFor
         ? formatScheduledFor(item.scheduledFor)
         : formatEta(item.eta);
-    const serviceLine = item.isMock
-      ? `${escapeHtml(item.serviceName)} · ${formatSum(item.price)} so'm`
-      : "";
+    const serviceLine = item.serviceName ? `${escapeHtml(item.serviceName)} · ${formatSum(item.servicePrice)} so'm` : "";
     return `
       <div class="booking-row">
         <span class="avatar">${initials(item.clientName)}</span>
@@ -129,14 +171,10 @@ export function renderBookings(root) {
     `;
   }
 
-  function emptyHtml() {
-    return `<div class="empty-state"><span class="empty-icon">📋</span><span>Bu bo'lim uchun yozuvlar yo'q</span></div>`;
-  }
-
   load();
   const unsubscribe = onQueueUpdate((newQueue) => {
     queue = newQueue;
-    if (dateTab === "today") paint();
+    paint();
   });
 
   return unsubscribe;

@@ -779,6 +779,12 @@ select {
   color: var(--text-secondary);
 }
 
+.service-line {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
 /* ---------- Status badges ---------- */
 
 .status-badge {
@@ -1069,6 +1075,11 @@ select {
 .week-day-time {
   color: var(--text-disabled);
   font-weight: 600;
+}
+
+.week-day-empty {
+  font-size: 12px;
+  color: var(--text-disabled);
 }
 
 /* ---------- Clients ---------- */

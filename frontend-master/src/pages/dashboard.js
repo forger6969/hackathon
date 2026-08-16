@@ -10,10 +10,6 @@ import {
 } from "../format.js";
 import { refreshChrome } from "../router.js";
 
-// Backend doesn't return `calledAt` in the live-queue payload yet (asked
-// Saidazim to add it) — track "started" locally so the elapsed timer on an
-// in-service client still feels real instead of frozen at 00:00.
-const localStartedAt = new Map();
 let elapsedTimer = null;
 
 function greeting() {
@@ -32,14 +28,19 @@ export function renderDashboard(root) {
   const master = state.currentMaster;
   let queue = [];
   let todayStats = { clientsServed: 0, revenue: 0, hoursWorked: 0, earned: 0 };
+  let servicesById = {};
   let confirmingId = null;
 
   async function load() {
     try {
-      [queue, todayStats] = await Promise.all([
+      const [q, s, services] = await Promise.all([
         apiFetch(`/api/queue/${master._id}`),
         apiFetch(`/api/masters/${master._id}/today`),
+        Object.keys(servicesById).length ? Promise.resolve(null) : apiFetch("/api/services"),
       ]);
+      queue = q;
+      todayStats = s;
+      if (services) servicesById = Object.fromEntries(services.map((sv) => [sv._id, sv]));
     } catch (err) {
       // offline banner already reflects this globally
     }
@@ -107,7 +108,6 @@ export function renderDashboard(root) {
             method: "POST",
             body: JSON.stringify({ status: "called" }),
           });
-          localStartedAt.set(id, Date.now());
           await load();
         } catch (err) {
           startBtn.disabled = false;
@@ -148,7 +148,6 @@ export function renderDashboard(root) {
             method: "POST",
             body: JSON.stringify({ status: "done" }),
           });
-          localStartedAt.delete(confirmBtn.dataset.id);
           confirmingId = null;
           await load();
         } catch (err) {
@@ -184,9 +183,15 @@ export function renderDashboard(root) {
     `;
   }
 
+  function serviceLineHtml(item) {
+    const s = servicesById[item.serviceId];
+    if (!s) return "";
+    return `<p class="service-line">${escapeHtml(s.name)} · ${formatSum(s.price)} so'm · ${s.durationMin || Math.round(master.avgServiceTimeMs / 60000)} daq</p>`;
+  }
+
   function nextClientCardHtml(item) {
     const isActive = item.status === "called" || item.status === "in_progress";
-    const startedAt = localStartedAt.get(item._id);
+    const startedAt = item.calledAt ? new Date(item.calledAt).getTime() : null;
 
     if (isActive) {
       if (confirmingId === item._id) {
@@ -194,6 +199,7 @@ export function renderDashboard(root) {
           <div class="active-card confirm-card">
             <span class="active-card-label">✅ Xizmatni yakunlash</span>
             <h2 class="active-card-name">${escapeHtml(item.clientName)}</h2>
+            ${serviceLineHtml(item)}
             <p class="confirm-line">Boshlangan: ${startedAt ? new Date(startedAt).toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" }) : "—"}</p>
             <p class="confirm-line">To'lov: ${item.paid ? "✅ To'langan" : "⚠️ To'lanmagan"}</p>
             <div class="queue-actions">
@@ -210,6 +216,7 @@ export function renderDashboard(root) {
             <span class="avatar">${initials(item.clientName)}</span>
             <div class="active-card-info">
               <h2 class="active-card-name">${escapeHtml(item.clientName)}</h2>
+              ${serviceLineHtml(item)}
               <span class="elapsed-timer" data-elapsed data-started="${startedAt || ""}">
                 ${startedAt ? formatElapsed(Date.now() - startedAt) : "00:00"}
               </span>
@@ -230,6 +237,7 @@ export function renderDashboard(root) {
             <span class="avatar">${initials(item.clientName)}</span>
             <div class="active-card-info">
               <h2 class="active-card-name">${escapeHtml(item.clientName)}</h2>
+              ${serviceLineHtml(item)}
               <div class="active-card-badges">
                 ${statusBadgeHtml(item.status)}
                 ${paymentBadgeHtml(item)}
@@ -248,6 +256,7 @@ export function renderDashboard(root) {
           <span class="avatar">${initials(item.clientName)}</span>
           <div class="active-card-info">
             <h2 class="active-card-name">${escapeHtml(item.clientName)}</h2>
+            ${serviceLineHtml(item)}
             <div class="active-card-badges">
               ${statusBadgeHtml(item.status)}
               ${paymentBadgeHtml(item)}

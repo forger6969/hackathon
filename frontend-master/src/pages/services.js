@@ -1,10 +1,7 @@
-import { state, apiFetch } from "../state.js";
+import { apiFetch } from "../state.js";
 import { escapeHtml, formatSum } from "../format.js";
-import { mockServiceDurationMin } from "../mock.js";
 
 export function renderServices(root) {
-  const master = state.currentMaster;
-
   async function load() {
     let services = [];
     try {
@@ -24,8 +21,6 @@ export function renderServices(root) {
         </div>
       </div>
 
-      <p class="mock-note">Davomiylik hozircha usta o'rtacha vaqti bilan taxmin qilinadi — real "duration" maydoni backend'da yo'q</p>
-
       <div class="service-grid">
         ${services.length ? services.map(serviceCardHtml).join("") : `<div class="empty-state"><span class="empty-icon">✂️</span><span>Xizmatlar topilmadi</span></div>`}
       </div>
@@ -38,7 +33,7 @@ export function renderServices(root) {
         <span class="status-badge status-paid">Faol</span>
         <h3 class="service-card-name">${escapeHtml(s.name)}</h3>
         <div class="service-card-meta">
-          <span>${mockServiceDurationMin(s, master)} daq</span>
+          <span>${s.durationMin} daq</span>
           <span class="service-card-price">${formatSum(s.price)} so'm</span>
         </div>
       </div>
