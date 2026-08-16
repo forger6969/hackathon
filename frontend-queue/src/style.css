@@ -684,8 +684,12 @@ button.away.active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--text-heading);
+  padding: 6px;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
