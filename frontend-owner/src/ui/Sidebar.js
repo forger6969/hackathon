@@ -21,33 +21,42 @@ const BOTTOM = [
   { path: '/settings', label: 'Настройки', icon: icons.settings },
 ];
 
+/**
+ * Sidebar с двумя режимами:
+ * - PIN: постоянно раскрыт (когда пользователь пиннит через кнопку)
+ * - HOVER: mini-режим по умолчанию, раскрывается при hover
+ */
 export function Sidebar() {
   const ui = persist.get(persist.KEYS.ui, {});
-  let collapsed = ui.sidebarCollapsed || false;
+  let pinned = !!ui.sidebarPinned;   // true = развернут постоянно, false = hover-expand
 
-  const root = el('aside.sidebar', { class: [collapsed ? 'is-collapsed' : ''] });
+  const root = el('aside.sidebar', {
+    class: [pinned ? 'is-pinned' : 'is-hover'],
+  });
 
+  const brandMark = el('div.sidebar-mark', {
+    html: `<svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+      <path d="M4 20 L12 4 L20 20 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>`,
+  });
   const brand = el('div.sidebar-brand', {}, [
-    el('div.sidebar-mark', { html: `
-      <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-        <path d="M4 20 L12 4 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="url(#sg)"/>
-        <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#EFCE85"/><stop offset="1" stop-color="#8A6A2E" stop-opacity=".6"/>
-        </linearGradient></defs>
-      </svg>` }),
+    brandMark,
     el('div.sidebar-brand-text', {}, [
       el('div.sidebar-brand-name', { text: 'Навбат' }),
-      el('div.sidebar-brand-sub',  { text: 'salon OS' }),
+      el('div.sidebar-brand-sub',  { text: 'SALON OS' }),
     ]),
   ]);
 
   const toggle = el('button.sidebar-toggle', {
-    title: 'Свернуть панель',
+    title: pinned ? 'Открепить' : 'Закрепить',
     on: { click: () => {
-      collapsed = !collapsed;
-      root.classList.toggle('is-collapsed', collapsed);
-      persist.set(persist.KEYS.ui, { ...persist.get(persist.KEYS.ui, {}), sidebarCollapsed: collapsed });
-      renderItems();
+      pinned = !pinned;
+      root.classList.toggle('is-pinned', pinned);
+      root.classList.toggle('is-hover', !pinned);
+      toggle.title = pinned ? 'Открепить' : 'Закрепить';
+      persist.set(persist.KEYS.ui, { ...persist.get(persist.KEYS.ui, {}), sidebarPinned: pinned });
+      // Обновить body-класс для сдвига main
+      document.querySelector('.app-shell')?.classList.toggle('sidebar-pinned', pinned);
     } },
     html: '<svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   });
@@ -74,14 +83,12 @@ export function Sidebar() {
     bottom.innerHTML = '';
     const path = currentPath();
     NAV.forEach((item) => nav.append(makeItem(item, path === item.path)));
-    bottom.append(el('div.sidebar-divider'));
     BOTTOM.forEach((item) => bottom.append(makeItem(item, path === item.path)));
-    // Owner user chip
     bottom.append(el('div.sidebar-user', {}, [
       el('div.sidebar-user-avatar', { text: 'O' }),
       el('div.sidebar-user-text', {}, [
         el('div.sidebar-user-name', { text: 'Владелец' }),
-        el('div.sidebar-user-role', { text: 'Owner · salon1' }),
+        el('div.sidebar-user-role', { text: 'Owner · Head office' }),
       ]),
     ]));
   }
@@ -90,5 +97,11 @@ export function Sidebar() {
   renderItems();
 
   root.append(brandRow, nav, bottom);
+
+  // Инициализация shell класса
+  requestAnimationFrame(() => {
+    document.querySelector('.app-shell')?.classList.toggle('sidebar-pinned', pinned);
+  });
+
   return root;
 }

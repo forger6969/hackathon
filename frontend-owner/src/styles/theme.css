@@ -109,22 +109,24 @@ body {
 /* Убираем декор старой dark темы */
 .grain, .glow { display: none !important; }
 
-/* ── App shell ───────────────────────────── */
+/* ── App shell (with fixed sidebar + reserved column) ─── */
 .app-shell {
-  display: grid;
-  grid-template-columns: 260px 1fr;
+  display: block;
   min-height: 100vh;
   background: var(--body);
-  transition: grid-template-columns .3s cubic-bezier(.2,.7,.2,1);
+  padding-left: 84px; /* mini sidebar width by default */
+  transition: padding-left .3s cubic-bezier(.2,.7,.2,1);
 }
-.app-shell.is-collapsed { grid-template-columns: 76px 1fr; }
+.app-shell.sidebar-pinned { padding-left: 260px; }
 
-/* ── Sidebar (Dark TailAdmin sidebar) ────── */
+/* ── Sidebar (dark, hover-expand) ─────────── */
 .sidebar {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 0; left: 0;
   height: 100vh;
-  padding: 24px 16px 20px;
+  z-index: 200;
+  width: 84px;
+  padding: 24px 12px 20px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -132,6 +134,17 @@ body {
   color: var(--text-inverse-2);
   border-right: 0;
   overflow: hidden;
+  transition: width .3s cubic-bezier(.2,.7,.2,1), box-shadow .3s;
+}
+/* Hover-expand — только когда не пиннут */
+.sidebar.is-hover:hover {
+  width: 260px;
+  padding: 24px 16px 20px;
+  box-shadow: 24px 0 60px -20px rgba(0, 0, 0, 0.35);
+}
+.sidebar.is-pinned {
+  width: 260px;
+  padding: 24px 16px 20px;
 }
 .sidebar-top {
   display: flex;
@@ -235,11 +248,22 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.is-collapsed .sidebar-item-label,
-.is-collapsed .sidebar-brand-text,
-.is-collapsed .sidebar-user-text,
-.is-collapsed .sidebar-nav::before { display: none; }
-.is-collapsed .sidebar-item { justify-content: center; }
+/* Скрытые элементы в mini-режиме (пока не hover) */
+.sidebar.is-hover:not(:hover) .sidebar-item-label,
+.sidebar.is-hover:not(:hover) .sidebar-brand-text,
+.sidebar.is-hover:not(:hover) .sidebar-user-text,
+.sidebar.is-hover:not(:hover) .sidebar-nav::before,
+.sidebar.is-hover:not(:hover) .sidebar-toggle {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+.sidebar.is-hover:not(:hover) .sidebar-item { justify-content: center; padding: 10px 8px; }
+.sidebar-item-label, .sidebar-brand-text, .sidebar-user-text, .sidebar-toggle { transition: opacity .3s .1s; }
+
+/* Toggle: rotate icon когда pinned */
+.sidebar.is-pinned .sidebar-toggle svg { transform: rotate(180deg); }
+.sidebar-toggle svg { transition: transform .3s; }
 
 .sidebar-bottom {
   display: flex;
