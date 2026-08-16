@@ -16,7 +16,7 @@ app.innerHTML = `
 QRCode.toCanvas(document.getElementById("qr-canvas"), targetUrl, {
   width: 280,
   margin: 2,
-  color: { dark: "#0f0f0f", light: "#f5f1e8" },
+  color: { dark: "#101828", light: "#ffffff" },
 }).catch((err) => {
   document.querySelector(".qr-box").textContent = "QR yaratib bo'lmadi: " + err.message;
 });
