@@ -31,10 +31,10 @@ async function seed() {
   ]);
 
   const services = await Service.insertMany([
-    { name: 'Soch olish', price: 30000, stockUse: [{ stockId: stock[2]._id, qty: 1 }] },
-    { name: 'Soqol olish', price: 20000, stockUse: [{ stockId: stock[1]._id, qty: 1 }] },
-    { name: 'Soch + soqol', price: 45000, stockUse: [{ stockId: stock[2]._id, qty: 1 }, { stockId: stock[1]._id, qty: 1 }] },
-    { name: 'Bo\'yash', price: 60000, stockUse: [{ stockId: stock[3]._id, qty: 1 }] },
+    { name: 'Soch olish', price: 30000, durationMin: 30, stockUse: [{ stockId: stock[2]._id, qty: 1 }] },
+    { name: 'Soqol olish', price: 20000, durationMin: 20, stockUse: [{ stockId: stock[1]._id, qty: 1 }] },
+    { name: 'Soch + soqol', price: 45000, durationMin: 45, stockUse: [{ stockId: stock[2]._id, qty: 1 }, { stockId: stock[1]._id, qty: 1 }] },
+    { name: 'Bo\'yash', price: 60000, durationMin: 60, stockUse: [{ stockId: stock[3]._id, qty: 1 }] },
   ]);
 
   const DEMO_PASSWORD = 'usta1234';

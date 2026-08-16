@@ -45,7 +45,7 @@ module.exports = function createQueueRouter(io) {
       }
       const eta = liveIdx * avgMs;
       liveIdx += 1;
-      return { _id: item._id, clientName: item.clientName, status: item.status, paid: item.paid, paymentMethod: item.paymentMethod, payments: item.payments, changeGiven: item.changeGiven, serviceId: item.serviceId, eta };
+      return { _id: item._id, clientName: item.clientName, status: item.status, paid: item.paid, paymentMethod: item.paymentMethod, payments: item.payments, changeGiven: item.changeGiven, serviceId: item.serviceId, calledAt: item.calledAt, eta };
     });
 
     io.emit('queue:update', { masterId: String(masterId), queue: withEta });
@@ -103,6 +103,21 @@ module.exports = function createQueueRouter(io) {
   router.get('/:masterId', async (req, res) => {
     const withEta = await broadcastQueue(req.params.masterId);
     res.json(withEta);
+  });
+
+  // Past bookings for a master — done/skipped/cancelled, not the live queue.
+  router.get('/:masterId/history', async (req, res) => {
+    const { status, from, to } = req.query;
+    const filter = { masterId: req.params.masterId };
+    filter.status = status ? status : { $in: ['done', 'skipped', 'cancelled'] };
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    const items = await QueueItem.find(filter).sort({ createdAt: -1 }).limit(200).populate('serviceId', 'name price');
+    res.json(items);
   });
 
   // Client or reception confirms the scheduled client has actually arrived —
