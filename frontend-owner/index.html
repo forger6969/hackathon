@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0F0F0F" />
+    <meta name="theme-color" content="#0B0B0E" />
     <title>Навбат — Панель хозяина</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/extension.css" />
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -26,32 +27,36 @@
             <path d="M4 20 L12 4 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="url(#brand-g)"/>
             <defs>
               <linearGradient id="brand-g" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#E0C285"/>
-                <stop offset="1" stop-color="#B8924A" stop-opacity=".6"/>
+                <stop stop-color="#EFCE85"/>
+                <stop offset="1" stop-color="#8A6A2E" stop-opacity=".6"/>
               </linearGradient>
             </defs>
           </svg>
           <div class="brand-text">
             <div class="brand-name">Навбат</div>
-            <div class="brand-role">панель хозяина · Sartaroshxona salon1</div>
+            <div class="brand-role">панель хозяина · salon1</div>
           </div>
         </div>
 
         <div class="topbar-right">
+          <button class="btn-primary" id="add-emp-btn" type="button" title="Нанять сотрудника (N)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Сотрудник</span>
+          </button>
+          <button class="btn-icon" id="pay-all-btn" type="button" title="Массовая выплата (P)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Зарплата</span>
+          </button>
           <div class="live-badge" id="live-badge">
             <span class="dot"></span>
             <span>ONLINE</span>
           </div>
-          <button class="btn-icon" id="autoplay-btn" type="button" title="Демо-режим (клавиша D)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M6 4 L20 12 L6 20 Z" fill="currentColor"/>
-            </svg>
+          <button class="btn-icon" id="autoplay-btn" type="button" title="Демо-режим (D)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 4 L20 12 L6 20 Z" fill="currentColor"/></svg>
             <span>Демо</span>
           </button>
           <button class="btn-icon" id="refresh-btn" type="button" title="Обновить (R)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
       </header>
@@ -74,7 +79,7 @@
         </div>
       </section>
 
-      <!-- ── KPI grid — 4 cards with sparklines ─── -->
+      <!-- ── KPI grid ───────────────────────── -->
       <section class="kpi-grid">
         <article class="kpi card chart-rise" style="--d:0ms">
           <div class="kpi-blob kpi-blob--gold"></div>
@@ -150,58 +155,139 @@
         </article>
       </section>
 
-      <!-- ── Chart: Revenue by hour × service ─── -->
-      <section class="chart-card card chart-rise" style="--d:480ms">
-        <header class="chart-head">
-          <div>
-            <div class="eyebrow-sm">выручка · по часам · разбивка по услугам</div>
-            <h2 class="chart-title">Смена дня</h2>
+      <!-- ── This month strip ─────────────────── -->
+      <section class="month-strip card chart-rise" style="--d:420ms">
+        <div class="month-item">
+          <div class="month-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </div>
-          <div class="legend" id="chart-legend"></div>
-        </header>
-        <div class="chart-wrap">
-          <svg class="chart-svg" id="chart" viewBox="0 0 800 260" preserveAspectRatio="none"></svg>
-          <div class="chart-tooltip" id="chart-tip" role="tooltip"></div>
+          <div>
+            <div class="month-label">Клиенты за месяц</div>
+            <div class="month-value"><span id="mo-clients">0</span></div>
+          </div>
+        </div>
+        <div class="month-item">
+          <div class="month-icon month-icon--gold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="month-label">Прибыль за месяц</div>
+            <div class="month-value"><span class="num-gold" id="mo-revenue">0</span> <span class="month-unit">сум</span></div>
+          </div>
+        </div>
+        <div class="month-item">
+          <div class="month-icon month-icon--emerald">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 17l6-6 4 4 8-8M14 7h7v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="month-label">Рост vs прошлый</div>
+            <div class="month-value"><span class="num-emerald" id="mo-growth">+0%</span></div>
+          </div>
+        </div>
+        <div class="month-item">
+          <div class="month-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="month-label">Сотрудников</div>
+            <div class="month-value"><span id="mo-emps">0</span> <span class="month-unit">чел.</span></div>
+          </div>
         </div>
       </section>
 
-      <!-- ── Masters table ────────────────────── -->
-      <section class="card table-card chart-rise" style="--d:600ms">
+      <!-- ── Chart + Top services ─────────────── -->
+      <section class="chart-row">
+        <div class="chart-card card chart-rise" style="--d:540ms">
+          <header class="chart-head">
+            <div>
+              <div class="eyebrow-sm">выручка · по часам · разбивка по услугам</div>
+              <h2 class="chart-title">Смена дня</h2>
+            </div>
+            <div class="legend" id="chart-legend"></div>
+          </header>
+          <div class="chart-wrap">
+            <svg class="chart-svg" id="chart" viewBox="0 0 800 260" preserveAspectRatio="none"></svg>
+            <div class="chart-tooltip" id="chart-tip" role="tooltip"></div>
+          </div>
+        </div>
+
+        <div class="top-svc card chart-rise" style="--d:660ms">
+          <header class="chart-head">
+            <div>
+              <div class="eyebrow-sm">спрос сегодня</div>
+              <h2 class="chart-title">Топ услуг</h2>
+            </div>
+          </header>
+          <ul class="top-svc-list" id="top-svc-list"></ul>
+        </div>
+      </section>
+
+      <!-- ── Employees table ──────────────────── -->
+      <section class="card table-card chart-rise" style="--d:780ms">
         <header class="chart-head">
           <div class="chart-head-left">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--accent)">
-              <path d="M8 3v5a4 4 0 008 0V3M6 21h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <circle cx="12" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--gold-blush)">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
             <div>
               <div class="eyebrow-sm">команда</div>
-              <h2 class="chart-title">Мастера в смене</h2>
+              <h2 class="chart-title">Сотрудники</h2>
             </div>
           </div>
-          <span class="head-hint">клик по строке — детали мастера</span>
+          <button class="btn-primary btn-sm" id="add-emp-btn-2" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            <span>Нанять</span>
+          </button>
         </header>
         <div class="table-wrap">
           <table class="masters-table">
             <thead>
               <tr>
-                <th>Мастер</th>
+                <th>Сотрудник</th>
+                <th>Роль</th>
                 <th class="col-r">Клиентов</th>
-                <th class="col-r">Выручка</th>
-                <th class="col-r">Ср. время</th>
-                <th class="col-r">В очереди</th>
+                <th class="col-r">Выручка сегодня</th>
+                <th class="col-r">Оклад/мес</th>
                 <th class="col-r">Статус</th>
+                <th class="col-r">Действия</th>
               </tr>
             </thead>
-            <tbody id="masters-tbody">
-              <tr><td colspan="6" class="table-empty">Загрузка…</td></tr>
+            <tbody id="emps-tbody">
+              <tr><td colspan="7" class="table-empty">Загрузка…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- ── Split: stock alert + live feed ──── -->
+      <!-- ── Payroll + Stock alert ────────────── -->
       <section class="split">
-        <div class="card alert-card chart-rise" style="--d:720ms" id="alert-card">
+        <div class="card payroll-card chart-rise" style="--d:900ms">
+          <header class="chart-head">
+            <div class="chart-head-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--gold-blush)">
+                <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M6 6V4M18 6V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <div>
+                <div class="eyebrow-sm">финансы</div>
+                <h2 class="chart-title">История зарплат</h2>
+              </div>
+            </div>
+            <span class="head-hint" id="payroll-hint">за этот месяц</span>
+          </header>
+          <ul class="payroll-list" id="payroll-list">
+            <li class="feed-empty">Ещё никому не выдавали в этом месяце — нажми «Зарплата» сверху</li>
+          </ul>
+          <div class="payroll-total" id="payroll-total-wrap" hidden>
+            <span class="payroll-total-label">Итого выплачено</span>
+            <span class="payroll-total-val"><span id="payroll-total">0</span> сум</span>
+          </div>
+        </div>
+
+        <div class="card alert-card chart-rise" style="--d:1020ms" id="alert-card">
           <div class="alert-strip"></div>
           <div class="alert-body">
             <header class="alert-head">
@@ -212,35 +298,35 @@
                 <div class="eyebrow-sm eyebrow-sm--warn">склад — внимание</div>
                 <div class="alert-title" id="alert-title">Что заканчивается</div>
               </div>
-              <span class="head-hint head-hint--right">списывается автоматически при «Готово»</span>
             </header>
             <ul class="stock-list" id="stock-list">
               <li class="stock-empty">Загрузка…</li>
             </ul>
           </div>
         </div>
+      </section>
 
-        <div class="card feed-card chart-rise" style="--d:840ms">
-          <header class="chart-head">
-            <div class="chart-head-left">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--accent)">
-                <path d="M3 12h4l3-8 4 16 3-8h4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-              </svg>
-              <div>
-                <div class="eyebrow-sm">события</div>
-                <h2 class="chart-title">Лента</h2>
-              </div>
+      <!-- ── Live feed ─────────────────────────── -->
+      <section class="card feed-card chart-rise" style="--d:1140ms">
+        <header class="chart-head">
+          <div class="chart-head-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--gold-blush)">
+              <path d="M3 12h4l3-8 4 16 3-8h4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <div class="eyebrow-sm">события</div>
+              <h2 class="chart-title">Живая лента</h2>
             </div>
-            <span class="head-hint" id="feed-hint">ждём событий</span>
-          </header>
-          <ul class="feed-list" id="feed-list">
-            <li class="feed-empty">Пока пусто — как только мастер закроет запись, событие появится здесь</li>
-          </ul>
-        </div>
+          </div>
+          <span class="head-hint" id="feed-hint">ждём событий</span>
+        </header>
+        <ul class="feed-list" id="feed-list">
+          <li class="feed-empty">Пока пусто — как только сотрудник закроет запись, событие появится здесь</li>
+        </ul>
       </section>
 
       <!-- ── Bottom dark panel + FAB ─────────── -->
-      <section class="panel-dark chart-rise" style="--d:960ms">
+      <section class="panel-dark chart-rise" style="--d:1260ms">
         <div class="panel-grid">
           <div class="pstat">
             <div class="pstat-label">Смена</div>
@@ -262,15 +348,84 @@
             </div>
           </div>
         </div>
-        <button class="fab" type="button" id="fab" title="Демо-событие">
+        <button class="fab" type="button" id="fab" title="Демо-событие (+)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
         </button>
       </section>
 
       <footer class="footer">
         <span>Навбат · MARS IT Hackathon · 2026</span>
-        <span class="footer-hint">клавиша <kbd>D</kbd> — демо · <kbd>R</kbd> — обновить · <kbd>+</kbd> — событие</span>
+        <span class="footer-hint"><kbd>N</kbd> нанять · <kbd>P</kbd> зарплата · <kbd>D</kbd> демо · <kbd>R</kbd> обновить · <kbd>+</kbd> событие</span>
       </footer>
+    </div>
+
+    <!-- ── Modal: Add Employee ─────────────── -->
+    <div class="modal-overlay" id="modal-add" hidden>
+      <div class="modal card" role="dialog" aria-labelledby="modal-add-title">
+        <header class="modal-head">
+          <div>
+            <div class="eyebrow-sm">команда</div>
+            <h3 class="modal-title" id="modal-add-title">Нанять сотрудника</h3>
+          </div>
+          <button class="modal-close" data-close type="button" aria-label="Закрыть">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </header>
+        <form class="modal-body" id="add-form">
+          <div class="field">
+            <label class="field-label" for="f-name">Имя</label>
+            <input class="field-input" id="f-name" name="name" type="text" required autocomplete="off" placeholder="Например, Aziz" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="f-role">Роль</label>
+              <select class="field-input" id="f-role" name="role">
+                <option value="Мастер">Мастер</option>
+                <option value="Приёмщик">Приёмщик</option>
+                <option value="Оператор">Оператор</option>
+                <option value="Помощник">Помощник</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-salary">Оклад (сум/мес)</label>
+              <input class="field-input" id="f-salary" name="salary" type="number" min="0" step="100000" value="3000000" required />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-avg">Ср. время услуги (мин)</label>
+            <input class="field-input" id="f-avg" name="avgMin" type="number" min="1" max="180" value="20" required />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" data-close>Отмена</button>
+            <button type="submit" class="btn-primary">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+              <span>Нанять</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Modal: Confirm (universal) ──────── -->
+    <div class="modal-overlay" id="modal-confirm" hidden>
+      <div class="modal card modal--sm" role="dialog" aria-labelledby="modal-confirm-title">
+        <header class="modal-head">
+          <div>
+            <div class="eyebrow-sm" id="modal-confirm-eyebrow">действие</div>
+            <h3 class="modal-title" id="modal-confirm-title">Подтвердите</h3>
+          </div>
+          <button class="modal-close" data-close type="button" aria-label="Закрыть">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </header>
+        <div class="modal-body">
+          <p class="modal-msg" id="modal-confirm-msg">—</p>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" data-close>Отмена</button>
+            <button type="button" class="btn-primary" id="modal-confirm-ok">Подтвердить</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
