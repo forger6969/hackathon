@@ -72,6 +72,11 @@ async function renderSalonStep() {
 
   app.innerHTML = `
     <div class="wizard">
+      <div class="hero">
+        <div class="hero-badge">NAVBAT</div>
+        <div class="hero-title">Navbatsiz sartaroshxona</div>
+        <div class="hero-sub">Salonni tanlang, joyingizni band qiling — kutishga hojat yo'q</div>
+      </div>
       ${progressDots(1, 5)}
       <div class="step-title">Salonni tanlang</div>
       <div class="step-sub">Sizga qulay filialni tanlang</div>

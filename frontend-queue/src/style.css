@@ -52,6 +52,22 @@ body {
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
+  animation: fade-in 0.35s ease;
+}
+
+.wizard {
+  animation: fade-in 0.35s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .salon-name {
@@ -237,6 +253,39 @@ button.away.active {
   width: 100%;
 }
 
+.hero {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.hero-badge {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin-bottom: 10px;
+}
+
+.hero-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-heading);
+  line-height: 1.2;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text-heading), var(--accent-bright));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin: 0 auto;
+}
+
 .wizard-back {
   background: none;
   border: none;
@@ -303,19 +352,25 @@ button.away.active {
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .option-card:hover {
   background: var(--surface-hover);
   border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.option-card:active {
+  transform: translateY(0);
 }
 
 .option-card .avatar {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--border);
+  background: linear-gradient(135deg, var(--surface-hover), var(--border));
+  border: 1px solid var(--border);
   color: var(--accent-bright);
   display: flex;
   align-items: center;
