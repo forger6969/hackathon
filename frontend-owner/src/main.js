@@ -1,8 +1,6 @@
 // Entry point — Owner Dashboard v3
 // Модульная архитектура: sidebar + topbar + hash-router + real backend + Socket.io
-import '../style.css';
-import '../extension.css';
-import './styles/layout.css';
+import './styles/theme.css';
 
 import { el } from './core/dom.js';
 import { app } from './core/store.js';
