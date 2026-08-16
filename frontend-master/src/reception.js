@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import jsQR from "jsqr";
 import "./style.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -19,11 +20,51 @@ const els = {
   statWaiting: document.getElementById("stat-waiting"),
   statScheduled: document.getElementById("stat-scheduled"),
   statOnDuty: document.getElementById("stat-onduty"),
+  cashBalance: document.getElementById("cash-balance"),
+  cashRevenue: document.getElementById("cash-revenue"),
+  cashCash: document.getElementById("cash-cash"),
+  cashCard: document.getElementById("cash-card"),
+  cashRefunds: document.getElementById("cash-refunds"),
+  cashDeposits: document.getElementById("cash-deposits"),
+  cashWithdrawals: document.getElementById("cash-withdrawals"),
+  depositBtn: document.getElementById("cash-deposit-btn"),
+  withdrawBtn: document.getElementById("cash-withdraw-btn"),
+  cmModal: document.getElementById("cash-movement-modal"),
+  cmTitle: document.getElementById("cash-movement-title"),
+  cmForm: document.getElementById("cash-movement-form"),
+  cmAmount: document.getElementById("cm-amount"),
+  cmMethod: document.getElementById("cm-method"),
+  cmNote: document.getElementById("cm-note"),
+  cmCancel: document.getElementById("cash-movement-cancel"),
+  payModal: document.getElementById("payment-modal"),
+  payTitle: document.getElementById("payment-modal-title"),
+  payDue: document.getElementById("pay-due"),
+  payAlready: document.getElementById("pay-already"),
+  payRemaining: document.getElementById("pay-remaining"),
+  payLines: document.getElementById("pay-lines"),
+  payForm: document.getElementById("payment-form"),
+  payMethod: document.getElementById("pay-method"),
+  payAmount: document.getElementById("pay-amount"),
+  payChange: document.getElementById("pay-change"),
+  payChangeValue: document.getElementById("pay-change-value"),
+  paySubmit: document.getElementById("pay-submit"),
+  payCancel: document.getElementById("payment-cancel"),
+  codeForm: document.getElementById("code-search-form"),
+  codeInput: document.getElementById("code-search-input"),
+  codeError: document.getElementById("code-search-error"),
+  scanBtn: document.getElementById("scan-qr-btn"),
+  scanModal: document.getElementById("scan-modal"),
+  scanVideo: document.getElementById("scan-video"),
+  scanCancel: document.getElementById("scan-cancel"),
+  scanError: document.getElementById("scan-error"),
 };
 
 let masters = [];
 let salonsById = {};
+let servicesById = {};
 let items = [];
+let cmType = "deposit";
+let payItemId = null;
 
 const STATUS_LABELS = {
   scheduled: "Belgilangan",
@@ -31,6 +72,10 @@ const STATUS_LABELS = {
   called: "Chaqirildi",
   in_progress: "Xizmatda",
 };
+
+function fmt(n) {
+  return new Intl.NumberFormat("uz-UZ").format(Math.round(n || 0));
+}
 
 function setOffline(isOffline) {
   els.offline.classList.toggle("hidden", !isOffline);
@@ -90,6 +135,7 @@ async function loadCatalog() {
   ]);
   masters = allMasters;
   salonsById = Object.fromEntries(salons.map((s) => [s._id, s.name]));
+  servicesById = Object.fromEntries(services.map((s) => [s._id, s]));
 
   els.salon.innerHTML = salons
     .map((s) => `<option value="${s._id}">${escapeHtml(s.name)}</option>`)
@@ -166,21 +212,25 @@ async function refreshMastersStatus() {
 }
 setInterval(refreshMastersStatus, 15000);
 
-async function checkin(id) {
+async function loadCashToday() {
   try {
-    await apiFetch(`/api/queue/${id}/checkin`, { method: "POST" });
-    await loadQueue();
+    const cash = await apiFetch("/api/cash/today");
+    els.cashBalance.textContent = `${fmt(cash.balance)} so'm`;
+    els.cashRevenue.textContent = fmt(cash.revenue);
+    els.cashCash.textContent = fmt(cash.cash);
+    els.cashCard.textContent = fmt(cash.card);
+    els.cashRefunds.textContent = fmt(cash.refunds);
+    els.cashDeposits.textContent = fmt(cash.deposits);
+    els.cashWithdrawals.textContent = fmt(cash.withdrawals);
   } catch (err) {
     setOffline(true);
   }
 }
+setInterval(loadCashToday, 15000);
 
-async function markPaid(id, method) {
+async function checkin(id) {
   try {
-    await apiFetch(`/api/queue/${id}/pay`, {
-      method: "POST",
-      body: JSON.stringify({ method }),
-    });
+    await apiFetch(`/api/queue/${id}/checkin`, { method: "POST" });
     await loadQueue();
   } catch (err) {
     setOffline(true);
@@ -218,12 +268,11 @@ function render() {
         item.status === "scheduled"
           ? `<button class="btn btn-primary" data-checkin="${item._id}">Keldi</button>`
           : "";
-      const payButtons = !item.paid
-        ? `<button class="btn btn-success" data-pay="${item._id}" data-method="cash">💵 Naqd</button>
-           <button class="btn btn-success" data-pay="${item._id}" data-method="card">💳 Karta</button>`
+      const payBtn = !item.paid
+        ? `<button class="btn btn-success" data-open-pay="${item._id}">💳 To'lov</button>`
         : "";
       const paidBadge = item.paid
-        ? `<span class="status-badge status-paid">To'langan${item.paymentMethod ? ` · ${item.paymentMethod === "card" ? "💳" : "💵"}` : ""}</span>`
+        ? `<span class="status-badge status-paid">To'langan${item.paymentMethod ? ` · ${item.paymentMethod === "card" ? "💳" : item.paymentMethod === "split" ? "🔀" : "💵"}` : ""}</span>`
         : `<span class="status-badge status-unpaid">To'lanmagan</span>`;
 
       return `
@@ -237,7 +286,7 @@ function render() {
             ${paidBadge}
           </div>
           <div class="reception-master">${escapeHtml(item.masterName || "")}</div>
-          ${checkinBtn || payButtons ? `<div class="queue-actions">${checkinBtn}${payButtons}</div>` : ""}
+          ${checkinBtn || payBtn ? `<div class="queue-actions">${checkinBtn}${payBtn}</div>` : ""}
         </div>
       `;
     })
@@ -251,10 +300,217 @@ els.list.addEventListener("click", (e) => {
     checkin(checkinBtn.dataset.checkin);
     return;
   }
-  const payBtn = e.target.closest("button[data-pay]");
-  if (payBtn) {
-    payBtn.disabled = true;
-    markPaid(payBtn.dataset.pay, payBtn.dataset.method);
+  const openPayBtn = e.target.closest("button[data-open-pay]");
+  if (openPayBtn) {
+    openPaymentModal(openPayBtn.dataset.openPay);
+  }
+});
+
+// ── Payment modal: due/remaining, split payment lines, change calc ──
+
+function openPaymentModal(itemId) {
+  payItemId = itemId;
+  const item = items.find((i) => i._id === itemId);
+  if (!item) return;
+
+  const service = servicesById[item.serviceId];
+  els.payTitle.textContent = `To'lov — ${item.clientName}`;
+  els.payAmount.value = "";
+  els.payMethod.value = "cash";
+  els.payChange.classList.add("hidden");
+  renderPaymentSummary(item, service);
+
+  els.payModal.classList.remove("hidden");
+}
+
+function renderPaymentSummary(item, service) {
+  const due = service ? service.price : 0;
+  const already = (item.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const remaining = Math.max(0, due - already);
+
+  els.payDue.textContent = `${fmt(due)} so'm`;
+  els.payAlready.textContent = `${fmt(already)} so'm`;
+  els.payRemaining.textContent = `${fmt(remaining)} so'm`;
+  els.payAmount.value = remaining || "";
+
+  els.payLines.innerHTML = (item.payments || [])
+    .map((p) => `<div class="r-pay-line"><span>${p.method === "card" ? "💳 Karta" : "💵 Naqd"}</span><span>${fmt(p.amount)} so'm</span></div>`)
+    .join("");
+}
+
+function updateChangePreview() {
+  const item = items.find((i) => i._id === payItemId);
+  if (!item) return;
+  const service = servicesById[item.serviceId];
+  const due = service ? service.price : 0;
+  const already = (item.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const remaining = Math.max(0, due - already);
+  const entered = Number(els.payAmount.value) || 0;
+
+  if (entered > remaining) {
+    els.payChange.classList.remove("hidden");
+    els.payChangeValue.textContent = `${fmt(entered - remaining)} so'm`;
+  } else {
+    els.payChange.classList.add("hidden");
+  }
+}
+els.payAmount.addEventListener("input", updateChangePreview);
+
+els.payForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const method = els.payMethod.value;
+  const amount = Number(els.payAmount.value);
+  if (!amount || amount <= 0) return;
+
+  els.paySubmit.disabled = true;
+  try {
+    await apiFetch(`/api/queue/${payItemId}/pay`, {
+      method: "POST",
+      body: JSON.stringify({ method, amount }),
+    });
+    await loadQueue();
+    await loadCashToday();
+    const updated = items.find((i) => i._id === payItemId);
+    if (updated && updated.paid) {
+      els.payModal.classList.add("hidden");
+    } else if (updated) {
+      renderPaymentSummary(updated, servicesById[updated.serviceId]);
+      els.payChange.classList.add("hidden");
+    }
+  } catch (err) {
+    setOffline(true);
+  } finally {
+    els.paySubmit.disabled = false;
+  }
+});
+
+els.payCancel.addEventListener("click", () => els.payModal.classList.add("hidden"));
+
+// ── Booking-code lookup: client shows a QR (or types the code manually).
+// frontend-queue encodes bookingCode() — last 6 chars of the _id, uppercased —
+// both as a scannable QR and as plain text under it. ──
+
+function bookingCode(id) {
+  return (id || "").toString().slice(-6).toUpperCase();
+}
+
+function applyCode(rawCode) {
+  const code = (rawCode || "").trim().toUpperCase();
+  if (!code) return false;
+
+  const match = items.find((i) => bookingCode(i._id) === code);
+  els.codeError.classList.toggle("hidden", !!match);
+  if (!match) return false;
+
+  const card = els.list.querySelector(`[data-id="${match._id}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("is-highlighted");
+    setTimeout(() => card.classList.remove("is-highlighted"), 2000);
+  }
+  if (!match.paid) {
+    openPaymentModal(match._id);
+  }
+  return true;
+}
+
+els.codeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (applyCode(els.codeInput.value)) {
+    els.codeInput.value = "";
+  }
+});
+
+// ── Camera QR scanner (jsQR) — reads the QR frontend-queue renders next to
+// the booking code, then runs it through the same applyCode() lookup. ──
+
+let scanStream = null;
+let scanRafId = null;
+const scanCanvas = document.createElement("canvas");
+const scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
+
+function stopScan() {
+  if (scanRafId) cancelAnimationFrame(scanRafId);
+  scanRafId = null;
+  if (scanStream) {
+    scanStream.getTracks().forEach((t) => t.stop());
+    scanStream = null;
+  }
+  els.scanModal.classList.add("hidden");
+}
+
+function scanFrame() {
+  if (!scanStream) return;
+  const video = els.scanVideo;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+    const imageData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    const decoded = jsQR(imageData.data, imageData.width, imageData.height);
+    if (decoded && decoded.data) {
+      const found = applyCode(decoded.data);
+      if (found) {
+        stopScan();
+        return;
+      }
+    }
+  }
+  scanRafId = requestAnimationFrame(scanFrame);
+}
+
+async function startScan() {
+  els.scanError.classList.add("hidden");
+  els.scanModal.classList.remove("hidden");
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
+    els.scanVideo.srcObject = scanStream;
+    await els.scanVideo.play();
+    scanRafId = requestAnimationFrame(scanFrame);
+  } catch (err) {
+    els.scanError.classList.remove("hidden");
+  }
+}
+
+els.scanBtn.addEventListener("click", startScan);
+els.scanCancel.addEventListener("click", stopScan);
+
+// ── Cash movement modal (manual deposit/withdrawal) ──
+
+function openCashMovement(type) {
+  cmType = type;
+  els.cmTitle.textContent = type === "deposit" ? "Kassaga kirim" : "Kassadan chiqim";
+  els.cmAmount.value = "";
+  els.cmNote.value = "";
+  els.cmModal.classList.remove("hidden");
+}
+
+els.depositBtn.addEventListener("click", () => openCashMovement("deposit"));
+els.withdrawBtn.addEventListener("click", () => openCashMovement("withdrawal"));
+els.cmCancel.addEventListener("click", () => els.cmModal.classList.add("hidden"));
+
+els.cmForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const amount = Number(els.cmAmount.value);
+  if (!amount || amount <= 0) return;
+
+  try {
+    await apiFetch("/api/cash/movement", {
+      method: "POST",
+      body: JSON.stringify({
+        type: cmType,
+        method: els.cmMethod.value,
+        amount,
+        note: els.cmNote.value.trim(),
+        performedBy: "Reception",
+      }),
+    });
+    els.cmModal.classList.add("hidden");
+    await loadCashToday();
+  } catch (err) {
+    setOffline(true);
   }
 });
 
@@ -265,13 +521,17 @@ function connectSocket() {
   socket.on("disconnect", () => setOffline(true));
   // Reception cares about every master at once, so any update just
   // triggers a refetch of the flat cross-master list.
-  socket.on("queue:update", () => loadQueue());
+  socket.on("queue:update", () => {
+    loadQueue();
+    loadCashToday();
+  });
 }
 
 async function init() {
   try {
     await loadCatalog();
     await loadQueue();
+    await loadCashToday();
   } catch (err) {
     setOffline(true);
     els.list.innerHTML = "<p class=\"empty-state\">Backend bilan aloqa yo'q</p>";

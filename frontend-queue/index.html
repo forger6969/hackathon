@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Navbat — Premium Barbershop</title>
+  </head>
+  <body>
+    <nav class="navbar" id="navbar">
+      <div class="navbar-inner">
+        <a href="#top" class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="6" cy="6" r="2.4" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="6" cy="18" r="2.4" stroke="currentColor" stroke-width="1.8" />
+              <path
+                d="M7.8 7.4L19 17M19 7L7.8 16.6"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <span>NAVBAT</span>
+        </a>
+        <div class="nav-links">
+          <a href="#services">Xizmatlar</a>
+          <a href="#masters">Ustalar</a>
+          <a href="#locations">Salonlar</a>
+        </div>
+        <a href="#book" class="btn-primary nav-cta">Navbatga yozilish</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero" id="top">
+        <div class="hero-media">
+          <img
+            class="hero-img"
+            src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80"
+            alt="Premium barbershop"
+            onerror="this.closest('.hero-media').classList.add('img-fallback'); this.remove();"
+          />
+          <div class="hero-overlay"></div>
+        </div>
+        <div class="hero-content">
+          <div class="eyebrow">Premium sartaroshxona</div>
+          <h1 class="hero-headline">Uslubingiz.<br />Vaqtingiz.</h1>
+          <p class="hero-subtitle">
+            Sevimli ustangizni tanlang, xizmatni belgilang va navbatni bir necha
+            soniyada bron qiling — kutish yo'q, ro'yxatdan o'tish yo'q.
+          </p>
+          <div class="hero-actions">
+            <a href="#book" class="btn-primary btn-lg">Navbatga yozilish</a>
+          </div>
+          <div class="hero-trust">
+            <span>Ro'yxatsiz</span><span class="dot">•</span
+            ><span>30 soniyada</span><span class="dot">•</span
+            ><span>Real-vaqtda navbat</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="stat-bar reveal">
+        <div class="stat"><div class="stat-num">2</div><div class="stat-label">Salon</div></div>
+        <div class="stat"><div class="stat-num">3+</div><div class="stat-label">Usta</div></div>
+        <div class="stat"><div class="stat-num">4.9</div><div class="stat-label">Baho</div></div>
+        <div class="stat"><div class="stat-num">15&nbsp;min</div><div class="stat-label">O'rtacha kutish</div></div>
+      </section>
+
+      <section class="section" id="services">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">Xizmatlarimiz</div>
+          <h2 class="section-title">Har bir uslub uchun xizmat</h2>
+        </div>
+        <div class="preview-grid" id="services-preview"></div>
+      </section>
+
+      <section class="section" id="masters">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">Jamoamiz</div>
+          <h2 class="section-title">Tajribali ustalarimiz</h2>
+        </div>
+        <div class="preview-grid masters-grid" id="masters-preview"></div>
+      </section>
+
+      <section class="big-image reveal">
+        <img
+          class="big-image-img"
+          src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1800&q=80"
+          alt="Salon ichki ko'rinishi"
+          onerror="this.closest('.big-image').classList.add('img-fallback'); this.remove();"
+        />
+        <div class="big-image-overlay"></div>
+        <div class="big-image-text">
+          <div class="eyebrow">Falsafamiz</div>
+          <h2>Bu shunchaki soch olish emas.</h2>
+        </div>
+      </section>
+
+      <section class="section" id="locations">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">Filiallar</div>
+          <h2 class="section-title">Sizga yaqin salonni toping</h2>
+          <p class="section-sub">Salonni tanlang — navbat bron qilishni davom ettiramiz</p>
+        </div>
+        <div class="locations-grid reveal">
+          <div class="option-list" id="salon-list"></div>
+          <div class="map-wrap">
+            <iframe
+              id="salon-map"
+              title="Salon joylashuvi"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="book">
+        <div class="section-head reveal">
+          <div class="section-eyebrow">Bron qilish</div>
+          <h2 class="section-title">Navbatingizni band qiling</h2>
+        </div>
+        <div id="app"></div>
+      </section>
+
+      <section class="final-cta reveal">
+        <h2>Navbatingiz uchun tayyormisiz?</h2>
+        <p>Bir necha soniyada joyingizni band qiling.</p>
+        <a href="#book" class="btn-primary btn-lg">Navbatga yozilish</a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="brand footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="6" cy="6" r="2.4" stroke="currentColor" stroke-width="1.8" />
+            <circle cx="6" cy="18" r="2.4" stroke="currentColor" stroke-width="1.8" />
+            <path d="M7.8 7.4L19 17M19 7L7.8 16.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span>NAVBAT</span>
+      </div>
+      <div class="footer-sub">Premium sartaroshxonalar tarmog'i</div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

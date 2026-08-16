@@ -38,6 +38,88 @@
   letter-spacing: -0.01em;
 }
 
+.r-code-search {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.r-code-search-form {
+  display: flex;
+  gap: 8px;
+}
+
+.r-scan-btn {
+  width: auto;
+  white-space: nowrap;
+}
+
+.r-scan-modal {
+  max-width: 420px;
+}
+
+.r-scan-video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #101018;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.r-scan-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.r-scan-frame {
+  position: absolute;
+  inset: 12%;
+  border: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.r-code-search input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 200px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+
+.r-code-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.r-code-search .btn {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.r-code-search-error {
+  color: var(--error);
+  font-size: 13px;
+  margin: -10px 0 16px;
+}
+
+.queue-card.is-highlighted {
+  animation: r-highlight-pulse 2s ease;
+}
+
+@keyframes r-highlight-pulse {
+  0%, 100% { box-shadow: 0 1px 2px rgba(58, 40, 10, 0.08); border-color: var(--border); }
+  20%, 60% { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
+}
+
 /* ── TailAdmin-style metric cards: icon chip + value + label ─── */
 
 .r-stat-grid {
@@ -363,4 +445,208 @@
 .reception-master {
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+/* ── Kassa card ─────────────────────────── */
+
+.r-cash-card {
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(58, 40, 10, 0.08), 0 8px 20px -12px rgba(58, 40, 10, 0.2);
+}
+
+.r-cash-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.r-cash-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.r-cash-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-ghost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--surface-hover);
+}
+
+.r-cash-body {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.r-cash-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+}
+
+.r-cash-balance-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.r-cash-balance-value {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.r-cash-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px 20px;
+  flex: 1;
+}
+
+.r-cash-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.r-cash-item-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.r-cash-item-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Modals ─────────────────────────────── */
+
+.r-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 27, 14, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+
+.r-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 50px -12px rgba(36, 27, 14, 0.4);
+}
+
+.r-modal h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.r-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.r-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.r-modal-actions .btn-ghost,
+.r-modal-actions .btn {
+  flex: 1;
+}
+
+.r-pay-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.r-pay-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+
+.r-pay-row-strong {
+  color: var(--text-heading);
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.r-pay-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.r-pay-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.r-pay-change {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--success-soft);
+  color: var(--success);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.r-pay-change strong {
+  font-size: 18px;
 }

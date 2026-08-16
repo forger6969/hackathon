@@ -35,9 +35,7 @@ export function Sidebar() {
   });
 
   const brandMark = el('div.sidebar-mark', {
-    html: `<svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-      <path d="M4 20 L12 4 L20 20 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    </svg>`,
+    html: `<img src="/barber_logo.svg" alt="Навбат" width="30" height="30" style="object-fit:contain;filter:brightness(1.1)" />`,
   });
   const brand = el('div.sidebar-brand', {}, [
     brandMark,

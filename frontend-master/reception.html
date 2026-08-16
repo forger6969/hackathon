@@ -14,7 +14,15 @@
           <span class="r-header-eyebrow">Navbat</span>
           <h1>Reception</h1>
         </div>
+        <div class="r-code-search">
+          <form id="code-search-form" class="r-code-search-form">
+            <input id="code-search-input" type="text" maxlength="6" placeholder="Bron kodi (masalan A1B2C3)" autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Topish</button>
+          </form>
+          <button type="button" id="scan-qr-btn" class="btn btn-primary r-scan-btn">📷 QR skanerlash</button>
+        </div>
       </header>
+      <p id="code-search-error" class="r-code-search-error hidden">Bu kod bo'yicha faol bron topilmadi</p>
 
       <div class="r-stat-grid">
         <div class="r-stat-card">
@@ -46,6 +54,48 @@
           </div>
         </div>
       </div>
+
+      <section class="r-cash-card">
+        <div class="r-cash-head">
+          <h2>💰 Kassa bugun</h2>
+          <div class="r-cash-actions">
+            <button type="button" id="cash-deposit-btn" class="btn-ghost">+ Kirim</button>
+            <button type="button" id="cash-withdraw-btn" class="btn-ghost">− Chiqim</button>
+          </div>
+        </div>
+        <div class="r-cash-body">
+          <div class="r-cash-balance">
+            <span class="r-cash-balance-label">Joriy qoldiq</span>
+            <span class="r-cash-balance-value" id="cash-balance">0 so'm</span>
+          </div>
+          <div class="r-cash-breakdown">
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">Tushum</span>
+              <span class="r-cash-item-value" id="cash-revenue">0</span>
+            </div>
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">💵 Naqd</span>
+              <span class="r-cash-item-value" id="cash-cash">0</span>
+            </div>
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">💳 Karta</span>
+              <span class="r-cash-item-value" id="cash-card">0</span>
+            </div>
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">Qaytarilgan</span>
+              <span class="r-cash-item-value" id="cash-refunds">0</span>
+            </div>
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">Kirim</span>
+              <span class="r-cash-item-value" id="cash-deposits">0</span>
+            </div>
+            <div class="r-cash-item">
+              <span class="r-cash-item-label">Chiqim</span>
+              <span class="r-cash-item-value" id="cash-withdrawals">0</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div id="offline-banner" class="offline-banner hidden">Aloqa yo'q — qayta urinilmoqda…</div>
 
@@ -105,6 +155,81 @@
         </main>
       </div>
     </div>
+
+    <div id="cash-movement-modal" class="r-modal-backdrop hidden">
+      <div class="r-modal">
+        <h3 id="cash-movement-title">Kassaga kirim</h3>
+        <form id="cash-movement-form">
+          <label class="r-field">
+            <span>Summa</span>
+            <input id="cm-amount" type="number" min="1" required />
+          </label>
+          <label class="r-field">
+            <span>Usul</span>
+            <select id="cm-method">
+              <option value="cash">Naqd</option>
+              <option value="card">Karta</option>
+            </select>
+          </label>
+          <label class="r-field">
+            <span>Izoh</span>
+            <input id="cm-note" type="text" placeholder="Masalan: yetkazib beruvchiga to'lov" />
+          </label>
+          <div class="r-modal-actions">
+            <button type="button" class="btn-ghost" id="cash-movement-cancel">Bekor qilish</button>
+            <button type="submit" class="btn btn-primary">Saqlash</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="payment-modal" class="r-modal-backdrop hidden">
+      <div class="r-modal">
+        <h3 id="payment-modal-title">To'lov</h3>
+        <div class="r-pay-summary">
+          <div class="r-pay-row"><span>Xizmat narxi</span><span id="pay-due">0</span></div>
+          <div class="r-pay-row"><span>To'langan</span><span id="pay-already">0</span></div>
+          <div class="r-pay-row r-pay-row-strong"><span>Qoldiq</span><span id="pay-remaining">0</span></div>
+        </div>
+        <div id="pay-lines" class="r-pay-lines"></div>
+        <form id="payment-form">
+          <label class="r-field">
+            <span>Usul</span>
+            <select id="pay-method">
+              <option value="cash">💵 Naqd</option>
+              <option value="card">💳 Karta</option>
+            </select>
+          </label>
+          <label class="r-field">
+            <span>Qabul qilingan summa</span>
+            <input id="pay-amount" type="number" min="1" required />
+          </label>
+          <div id="pay-change" class="r-pay-change hidden">
+            <span>Qaytim</span>
+            <strong id="pay-change-value">0</strong>
+          </div>
+          <div class="r-modal-actions">
+            <button type="button" class="btn-ghost" id="payment-cancel">Yopish</button>
+            <button type="submit" class="btn btn-primary" id="pay-submit">Qo'shish</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="scan-modal" class="r-modal-backdrop hidden">
+      <div class="r-modal r-scan-modal">
+        <h3>QR skanerlash</h3>
+        <div class="r-scan-video-wrap">
+          <video id="scan-video" playsinline muted></video>
+          <div class="r-scan-frame"></div>
+        </div>
+        <p id="scan-error" class="r-code-search-error hidden">Kameraga ruxsat berilmadi yoki topilmadi</p>
+        <div class="r-modal-actions">
+          <button type="button" class="btn-ghost" id="scan-cancel">Yopish</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/reception.js"></script>
   </body>
 </html>
