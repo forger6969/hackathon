@@ -12,6 +12,7 @@ const queueItemSchema = new mongoose.Schema({
   },
   scheduledFor: { type: Date, default: null },
   createdByReception: { type: Boolean, default: false },
+  paid: { type: Boolean, default: false },
   skipCount: { type: Number, default: 0 },
   calledAt: { type: Date, default: null },
   doneAt: { type: Date, default: null },

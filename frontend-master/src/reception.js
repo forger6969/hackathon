@@ -46,12 +46,12 @@ function escapeHtml(str = "") {
   );
 }
 
-// ── Форма: салон -> мастера этого салона ──────────────────
+// ── Форма: салон -> мастера этого салона, только те, кто "на линии" ──
 function renderMasterOptions(salonId) {
-  const filtered = masters.filter((m) => m.salonId === salonId);
-  els.master.innerHTML = filtered
-    .map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`)
-    .join("");
+  const filtered = masters.filter((m) => m.salonId === salonId && m.onDuty);
+  els.master.innerHTML = filtered.length
+    ? filtered.map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`).join("")
+    : `<option value="" disabled selected>Bu salonda hech kim on line emas</option>`;
 }
 
 async function loadCatalog() {
@@ -132,6 +132,15 @@ async function checkin(id) {
   }
 }
 
+async function markPaid(id) {
+  try {
+    await apiFetch(`/api/queue/${id}/pay`, { method: "POST" });
+    await loadQueue();
+  } catch (err) {
+    setOffline(true);
+  }
+}
+
 function formatScheduled(iso) {
   const d = new Date(iso);
   return d.toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -154,6 +163,12 @@ function render() {
         item.status === "scheduled"
           ? `<button class="btn btn-primary" data-checkin="${item._id}">Keldi</button>`
           : "";
+      const payBtn = !item.paid
+        ? `<button class="btn btn-success" data-pay="${item._id}">To'landi deb belgilash</button>`
+        : "";
+      const paidBadge = item.paid
+        ? `<span class="status-badge status-paid">To'langan</span>`
+        : `<span class="status-badge status-unpaid">To'lanmagan</span>`;
 
       return `
         <div class="queue-card" data-id="${item._id}">
@@ -161,9 +176,12 @@ function render() {
             <h2 class="queue-client-name">${escapeHtml(item.clientName)}</h2>
             ${scheduledTag}
           </div>
-          <span class="status-badge status-${item.status}">${badge}</span>
+          <div class="reception-badges">
+            <span class="status-badge status-${item.status}">${badge}</span>
+            ${paidBadge}
+          </div>
           <div class="reception-master">${escapeHtml(item.masterName || "")}</div>
-          ${checkinBtn ? `<div class="queue-actions">${checkinBtn}</div>` : ""}
+          ${checkinBtn || payBtn ? `<div class="queue-actions">${checkinBtn}${payBtn}</div>` : ""}
         </div>
       `;
     })
@@ -171,10 +189,17 @@ function render() {
 }
 
 els.list.addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-checkin]");
-  if (!btn) return;
-  btn.disabled = true;
-  checkin(btn.dataset.checkin);
+  const checkinBtn = e.target.closest("button[data-checkin]");
+  if (checkinBtn) {
+    checkinBtn.disabled = true;
+    checkin(checkinBtn.dataset.checkin);
+    return;
+  }
+  const payBtn = e.target.closest("button[data-pay]");
+  if (payBtn) {
+    payBtn.disabled = true;
+    markPaid(payBtn.dataset.pay);
+  }
 });
 
 function connectSocket() {

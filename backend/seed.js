@@ -37,9 +37,9 @@ async function seed() {
   ]);
 
   const masters = await Master.insertMany([
-    { name: 'Aziz', salonId: salons[0]._id, avgServiceTimeMs: 20 * 60 * 1000 },
-    { name: 'Sardor', salonId: salons[0]._id, avgServiceTimeMs: 25 * 60 * 1000 },
-    { name: 'Jasur', salonId: salons[1]._id, avgServiceTimeMs: 22 * 60 * 1000 },
+    { name: 'Aziz', salonId: salons[0]._id, avgServiceTimeMs: 20 * 60 * 1000, onDuty: true },
+    { name: 'Sardor', salonId: salons[0]._id, avgServiceTimeMs: 25 * 60 * 1000, onDuty: false },
+    { name: 'Jasur', salonId: salons[1]._id, avgServiceTimeMs: 22 * 60 * 1000, onDuty: true },
   ]);
 
   console.log('Seeded:', {

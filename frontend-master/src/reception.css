@@ -61,6 +61,22 @@
   border: 1px dashed var(--border);
 }
 
+.status-badge.status-paid {
+  color: var(--success);
+  background: rgba(122, 154, 109, 0.14);
+}
+
+.status-badge.status-unpaid {
+  color: var(--error);
+  background: rgba(176, 82, 74, 0.14);
+}
+
+.reception-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .reception-master {
   color: var(--text-secondary);
   font-size: 13px;
