@@ -188,23 +188,29 @@ body.standalone-page #app {
 button {
   width: 100%;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--surface-hover);
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 button:hover {
   background: var(--border);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 button.away.active {
@@ -229,7 +235,7 @@ button.away.active {
 .form select {
   width: 100%;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
@@ -556,16 +562,23 @@ button.away.active {
   color: var(--on-accent);
   font-weight: 700;
   padding: 12px 22px;
-  border-radius: 10px;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 12px rgba(70, 95, 255, 0.28);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(70, 95, 255, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(70, 95, 255, 0.28);
 }
 
 .btn-lg {
