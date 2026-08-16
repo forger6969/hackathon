@@ -67,6 +67,40 @@ body {
   border-color: var(--accent);
 }
 
+.master-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#duty-toggle {
+  flex: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+#duty-toggle.duty-off {
+  background: var(--success);
+  color: var(--text-heading);
+}
+
+#duty-toggle.duty-on {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.status-badge.status-paid {
+  color: var(--success);
+  background: rgba(122, 154, 109, 0.14);
+}
+
+.status-badge.status-unpaid {
+  color: var(--error);
+  background: rgba(176, 82, 74, 0.14);
+}
+
 .offline-banner {
   background: var(--error);
   color: var(--text-heading);

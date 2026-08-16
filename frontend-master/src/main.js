@@ -7,10 +7,12 @@ const els = {
   select: document.getElementById("master-select"),
   list: document.getElementById("queue-list"),
   offline: document.getElementById("offline-banner"),
+  dutyToggle: document.getElementById("duty-toggle"),
 };
 
 let currentMasterId = null;
 let queue = [];
+let mastersById = {};
 
 const STATUS_LABELS = {
   waiting: "Navbatda",
@@ -33,6 +35,7 @@ async function apiFetch(path, options = {}) {
 
 async function loadMasters() {
   const masters = await apiFetch("/api/masters");
+  mastersById = Object.fromEntries(masters.map((m) => [m._id, m]));
   els.select.innerHTML = masters
     .map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`)
     .join("");
@@ -54,8 +57,39 @@ function switchMaster(masterId) {
   const params = new URLSearchParams(location.search);
   params.set("masterId", masterId);
   history.replaceState(null, "", `?${params}`);
+  renderDutyToggle();
   loadQueue();
 }
+
+function renderDutyToggle() {
+  const master = mastersById[currentMasterId];
+  const onDuty = !!(master && master.onDuty);
+  els.dutyToggle.textContent = onDuty ? "Liniyani tugatish" : "Chiqish liniyaga";
+  els.dutyToggle.classList.toggle("duty-on", onDuty);
+  els.dutyToggle.classList.toggle("duty-off", !onDuty);
+}
+
+async function toggleDuty() {
+  const master = mastersById[currentMasterId];
+  if (!master) return;
+  const nextOnDuty = !master.onDuty;
+  els.dutyToggle.disabled = true;
+  try {
+    const updated = await apiFetch(`/api/masters/${currentMasterId}/duty`, {
+      method: "POST",
+      body: JSON.stringify({ onDuty: nextOnDuty }),
+    });
+    mastersById[currentMasterId] = updated;
+    setOffline(false);
+  } catch (err) {
+    setOffline(true);
+  } finally {
+    els.dutyToggle.disabled = false;
+    renderDutyToggle();
+  }
+}
+
+els.dutyToggle.addEventListener("click", toggleDuty);
 
 async function loadQueue() {
   if (!currentMasterId) return;
@@ -139,6 +173,7 @@ function render() {
             ${item.eta != null ? `<span class="queue-eta">${formatEta(item.eta)}</span>` : ""}
           </div>
           <span class="status-badge status-${item.status}">${STATUS_LABELS[item.status] || item.status}</span>
+          <span class="status-badge ${item.paid ? "status-paid" : "status-unpaid"}">${item.paid ? "To'langan" : "To'lanmagan"}</span>
           ${
             actions.length
               ? `<div class="queue-actions">

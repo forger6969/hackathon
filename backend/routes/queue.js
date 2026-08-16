@@ -34,12 +34,14 @@ module.exports = function createQueueRouter(io) {
           clientName: item.clientName,
           status: item.status,
           scheduledFor: item.scheduledFor,
+          paid: item.paid,
+          paymentMethod: item.paymentMethod,
           eta: null,
         };
       }
       const eta = liveIdx * avgMs;
       liveIdx += 1;
-      return { _id: item._id, clientName: item.clientName, status: item.status, eta };
+      return { _id: item._id, clientName: item.clientName, status: item.status, paid: item.paid, paymentMethod: item.paymentMethod, eta };
     });
 
     io.emit('queue:update', { masterId: String(masterId), queue: withEta });
@@ -63,6 +65,8 @@ module.exports = function createQueueRouter(io) {
         phone: item.phone,
         status: item.status,
         scheduledFor: item.scheduledFor,
+        paid: item.paid,
+        paymentMethod: item.paymentMethod,
         masterId: item.masterId ? item.masterId._id : null,
         masterName: item.masterId ? item.masterId.name : null,
       }))
@@ -106,6 +110,23 @@ module.exports = function createQueueRouter(io) {
     item.status = 'waiting';
     item.createdAt = new Date();
     await item.save();
+    await broadcastQueue(item.masterId);
+    res.json(item);
+  });
+
+  // Reception marks the client as paid — advisory flag only (no real auth
+  // exists yet to hard-enforce it), the master screen shows it as a badge.
+  // No split/multi-method payments — one method per booking, good enough
+  // for the demo without a payment-transaction ledger.
+  router.post('/:id/pay', async (req, res) => {
+    const { method } = req.body;
+    const paymentMethod = ['cash', 'card'].includes(method) ? method : 'cash';
+    const item = await QueueItem.findByIdAndUpdate(
+      req.params.id,
+      { paid: true, paymentMethod },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ error: 'not found' });
     await broadcastQueue(item.masterId);
     res.json(item);
   });

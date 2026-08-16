@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>Navbat — Reception</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/reception.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <h1>Navbat · Reception</h1>
+      </header>
+
+      <div id="offline-banner" class="offline-banner hidden">Aloqa yo'q — qayta urinilmoqda…</div>
+
+      <section class="reception-form">
+        <h2>Mijoz qo'shish</h2>
+        <form id="add-client-form">
+          <input id="f-name" type="text" placeholder="Mijoz ismi" required />
+          <input id="f-phone" type="tel" placeholder="Telefon" />
+          <select id="f-salon" required></select>
+          <select id="f-master" required></select>
+          <select id="f-service" required></select>
+
+          <div class="f-when">
+            <label><input type="radio" name="when" value="now" checked /> Hozir</label>
+            <label><input type="radio" name="when" value="later" /> Belgilangan vaqtga</label>
+          </div>
+          <input id="f-time" type="datetime-local" class="hidden" />
+
+          <button type="submit" class="btn btn-primary">Navbatga qo'shish</button>
+        </form>
+      </section>
+
+      <main id="reception-list" class="queue-list">
+        <p class="empty-state">Yuklanmoqda…</p>
+      </main>
+    </div>
+    <script type="module" src="/src/reception.js"></script>
+  </body>
+</html>
