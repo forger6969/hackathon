@@ -18,10 +18,16 @@ router.get('/today', async (req, res) => {
 
   const lowStock = await Stock.find({ $expr: { $lt: ['$qty', '$lowThreshold'] } });
 
+  const activeMasterIds = await QueueItem.distinct('masterId', {
+    createdAt: { $gte: startOfDay },
+    status: { $in: ['waiting', 'called', 'in_progress', 'done'] },
+  });
+
   res.json({
     clientsServed: doneToday.length,
     revenue,
     lowStock,
+    activeMasters: activeMasterIds.length,
   });
 });
 

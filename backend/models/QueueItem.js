@@ -7,9 +7,11 @@ const queueItemSchema = new mongoose.Schema({
   masterId: { type: mongoose.Schema.Types.ObjectId, ref: 'Master', required: true },
   status: {
     type: String,
-    enum: ['waiting', 'called', 'in_progress', 'done', 'skipped', 'cancelled'],
+    enum: ['scheduled', 'waiting', 'called', 'in_progress', 'done', 'skipped', 'cancelled'],
     default: 'waiting',
   },
+  scheduledFor: { type: Date, default: null },
+  createdByReception: { type: Boolean, default: false },
   skipCount: { type: Number, default: 0 },
   calledAt: { type: Date, default: null },
   doneAt: { type: Date, default: null },

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F0F0F" />
+    <title>Навбат — Панель хозяина</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="glow glow--tl" aria-hidden="true"></div>
+    <div class="glow glow--br" aria-hidden="true"></div>
+
+    <div class="app">
+      <!-- ── Topbar ──────────────────────────── -->
+      <header class="topbar">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 20 L12 4 L20 20 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="url(#g1)"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#E0C285"/>
+                <stop offset="1" stop-color="#B8924A" stop-opacity=".6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="brand-text">
+            <div class="brand-name">Навбат</div>
+            <div class="brand-role">панель хозяина · Sartaroshxona</div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn-icon" id="autoplay-btn" type="button" title="Демо-режим (клавиша D)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M6 4 L20 12 L6 20 Z" fill="currentColor"/>
+            </svg>
+            <span>Демо</span>
+          </button>
+          <button class="btn-icon" id="refresh-btn" type="button" title="Обновить">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="status" id="conn-status">
+            <span class="dot"></span>
+            <span class="status-text">офлайн</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── Section head ────────────────────── -->
+      <section class="section-head">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            <span>сегодня в реальном времени</span>
+          </div>
+          <h1 class="page-title" id="today-date">—</h1>
+        </div>
+        <div class="section-meta">
+          <div class="meta-item">
+            <span class="meta-label">открыто</span>
+            <span class="meta-value" id="uptime">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── HERO: revenue ──────────────────── -->
+      <section class="hero card">
+        <div class="hero-left">
+          <div class="metric-label">Выручка сегодня</div>
+          <div class="hero-value">
+            <span class="num" id="m-revenue">0</span>
+            <span class="hero-unit">сум</span>
+          </div>
+          <div class="hero-meta">
+            <span class="delta delta--up" id="m-delta">
+              <svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 2 L10 8 L2 8 Z" fill="currentColor"/></svg>
+              <span id="m-delta-val">+0%</span>
+            </span>
+            <span class="hero-meta-sep">·</span>
+            <span class="hero-meta-txt">по завершённым услугам</span>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="spark-caption">почасовая динамика</div>
+          <svg class="spark" id="spark" viewBox="0 0 320 90" preserveAspectRatio="none"></svg>
+        </div>
+      </section>
+
+      <!-- ── KPI row ────────────────────────── -->
+      <section class="metrics">
+        <article class="metric card">
+          <div class="metric-head">
+            <div class="metric-label">Клиентов обслужено</div>
+            <svg class="metric-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="metric-value">
+            <span class="num" id="m-clients">0</span>
+          </div>
+          <div class="metric-sub" id="m-clients-sub">завершённые записи</div>
+        </article>
+
+        <article class="metric card">
+          <div class="metric-head">
+            <div class="metric-label">Средний чек</div>
+            <svg class="metric-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2v20M6 8h9a3 3 0 010 6H9a3 3 0 000 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="metric-value">
+            <span class="num" id="m-avg">0</span>
+            <span class="metric-unit">сум</span>
+          </div>
+          <div class="metric-sub">выручка / клиенты</div>
+        </article>
+
+        <article class="metric card">
+          <div class="metric-head">
+            <div class="metric-label">Мастеров активно</div>
+            <svg class="metric-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M8 3v5a4 4 0 008 0V3M6 21h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="3" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="metric-value">
+            <span class="num" id="m-masters">0</span>
+          </div>
+          <div class="metric-sub" id="m-masters-sub">в смене прямо сейчас</div>
+        </article>
+
+        <article class="metric card metric--warn">
+          <div class="metric-head">
+            <div class="metric-label">Заканчивается</div>
+            <svg class="metric-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M12 10v5M12 18h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="metric-value">
+            <span class="num" id="m-low">0</span>
+          </div>
+          <div class="metric-sub">позиций ниже порога</div>
+        </article>
+      </section>
+
+      <!-- ── Bottom split: stock / feed ─────── -->
+      <section class="split">
+        <div class="card stock">
+          <header class="card-head">
+            <div>
+              <div class="eyebrow-sm">склад</div>
+              <h2 class="card-title">Что заканчивается</h2>
+            </div>
+            <span class="card-hint">списывается автоматически при «Готово»</span>
+          </header>
+          <ul class="stock-list" id="stock-list">
+            <li class="stock-empty">Загрузка…</li>
+          </ul>
+        </div>
+
+        <div class="card feed">
+          <header class="card-head">
+            <div>
+              <div class="eyebrow-sm">события</div>
+              <h2 class="card-title">Лента</h2>
+            </div>
+            <span class="card-hint" id="feed-hint">ждём событий</span>
+          </header>
+          <ul class="feed-list" id="feed-list">
+            <li class="feed-empty">Пока пусто — как только мастер закроет запись, событие появится здесь</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Навбат · MARS IT Hackathon · 2026</span>
+        <span class="footer-src" id="src-label">источник: —</span>
+        <span class="footer-hint">клавиша <kbd>D</kbd> — демо, <kbd>R</kbd> — обновить</span>
+      </footer>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

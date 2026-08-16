@@ -1,5 +1,6 @@
 require('dotenv').config();
 const connectDB = require('./config/db');
+const Salon = require('./models/Salon');
 const Master = require('./models/Master');
 const Service = require('./models/Service');
 const Stock = require('./models/Stock');
@@ -9,10 +10,16 @@ async function seed() {
   await connectDB();
 
   await Promise.all([
+    Salon.deleteMany({}),
     Master.deleteMany({}),
     Service.deleteMany({}),
     Stock.deleteMany({}),
     QueueItem.deleteMany({}),
+  ]);
+
+  const salons = await Salon.insertMany([
+    { name: 'Navbat — Chilonzor', address: 'Chilonzor tumani, 19-kvartal', location: { lat: 41.2775, lng: 69.2032 } },
+    { name: 'Navbat — Yunusobod', address: 'Yunusobod tumani, 4-mavze', location: { lat: 41.3487, lng: 69.2887 } },
   ]);
 
   const stock = await Stock.insertMany([
@@ -30,11 +37,17 @@ async function seed() {
   ]);
 
   const masters = await Master.insertMany([
-    { name: 'Aziz', avgServiceTimeMs: 20 * 60 * 1000 },
-    { name: 'Sardor', avgServiceTimeMs: 25 * 60 * 1000 },
+    { name: 'Aziz', salonId: salons[0]._id, avgServiceTimeMs: 20 * 60 * 1000 },
+    { name: 'Sardor', salonId: salons[0]._id, avgServiceTimeMs: 25 * 60 * 1000 },
+    { name: 'Jasur', salonId: salons[1]._id, avgServiceTimeMs: 22 * 60 * 1000 },
   ]);
 
-  console.log('Seeded:', { stock: stock.length, services: services.length, masters: masters.length });
+  console.log('Seeded:', {
+    salons: salons.length,
+    stock: stock.length,
+    services: services.length,
+    masters: masters.length,
+  });
   process.exit(0);
 }
 
