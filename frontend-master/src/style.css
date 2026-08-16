@@ -1,17 +1,22 @@
 :root {
-  --bg: #0f0f0f;
-  --surface: #181818;
-  --surface-hover: #1f1f1f;
-  --border: #2a2a2a;
-  --text: #f5f1e8;
-  --text-heading: #ffffff;
-  --text-secondary: #9a9a9a;
-  --text-disabled: #5c5c5c;
-  --accent: #c9a45c;
-  --accent-hover: #b8924a;
-  --accent-bright: #e0c285;
-  --success: #7a9a6d;
-  --error: #b0524a;
+  /* TailAdmin-style light theme */
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-hover: #f9fafb;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --text-heading: #101828;
+  --text-secondary: #667085;
+  --text-disabled: #98a2b3;
+  --accent: #465fff;
+  --accent-hover: #3641f5;
+  --accent-bright: #465fff;
+  --accent-soft: #eef2ff;
+  --success: #12b76a;
+  --success-soft: #ecfdf3;
+  --error: #f04438;
+  --error-soft: #fef3f2;
+  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 * {
@@ -24,7 +29,7 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
 
@@ -38,20 +43,24 @@ body {
 
 .topbar {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 4px 0 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  border-bottom: none;
   margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .topbar-title h1 {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--text-heading);
   margin: 0;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .topbar-subtitle {
@@ -64,7 +73,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 6px;
 }
 
 .master-indicator.hidden {
@@ -78,7 +87,7 @@ body {
 }
 
 .master-indicator-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-heading);
 }
@@ -96,16 +105,15 @@ body {
 }
 
 .switch-link:hover {
-  color: var(--accent-bright);
+  color: var(--accent);
 }
 
 .duty-toggle {
-  margin-top: 6px;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 6px 14px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: filter 0.15s ease, opacity 0.15s ease;
 }
@@ -116,112 +124,25 @@ body {
 }
 
 .duty-toggle.duty-off {
-  background: var(--success);
-  color: var(--text-heading);
+  background: var(--success-soft);
+  color: var(--success);
 }
 
 .duty-toggle.duty-on {
-  background: transparent;
+  background: var(--error-soft);
   color: var(--error);
-  border: 1px solid var(--error);
 }
 
-/* ---------- Today's stats (master's own shift summary) ---------- */
+/* ---------- KPI stat cards ---------- */
 
-.today-stats {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.today-stats.hidden {
-  display: none;
-}
-
-.today-stats .stat-pill {
-  background: linear-gradient(165deg, var(--surface-hover), var(--surface));
-}
-
-.today-stats .stat-value {
-  color: var(--text-heading);
-}
-
-.today-stats .stat-pill.stat-earned .stat-value {
-  color: var(--accent-bright);
-}
-
-/* ---------- Login screen (pick which master you are) ---------- */
-
-.login-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 8px 12px;
-  gap: 20px;
-}
-
-.login-screen-title {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 15px;
-  margin: 0;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-.login-select,
-.login-password {
-  width: 100%;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.login-select {
-  cursor: pointer;
-}
-
-.login-password::placeholder {
-  color: var(--text-disabled);
-  font-weight: 400;
-}
-
-.login-select:focus,
-.login-password:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.login-error {
-  margin: -4px 0 0;
-  color: var(--error);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.login-submit {
-  margin-top: 4px;
-  padding: 14px;
-  font-size: 16px;
-}
-
-/* ---------- Stats bar ---------- */
-
+.today-stats,
 .queue-stats {
   display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
+.today-stats.hidden,
 .queue-stats.hidden {
   display: none;
 }
@@ -230,24 +151,29 @@ body {
   flex: 1;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
-  text-align: center;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .stat-pill .stat-value {
   display: block;
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--accent-bright);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
   line-height: 1.2;
 }
 
 .stat-pill .stat-label {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.today-stats .stat-pill.stat-earned .stat-value {
+  color: var(--accent);
 }
 
 /* ---------- Offline banner ---------- */
@@ -257,9 +183,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(176, 82, 74, 0.14);
+  background: var(--error-soft);
   color: var(--error);
-  border: 1px solid rgba(176, 82, 74, 0.4);
+  border: 1px solid #fda29b;
   text-align: center;
   padding: 10px 12px;
   border-radius: 10px;
@@ -297,6 +223,10 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .empty-state .empty-icon {
@@ -345,13 +275,12 @@ body {
 /* ---------- Active client card ---------- */
 
 .active-card {
-  background: linear-gradient(165deg, var(--surface-hover), var(--surface));
-  border: 1px solid var(--accent);
-  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 0 1px rgba(201, 164, 92, 0.08), 0 12px 28px -12px rgba(0, 0, 0, 0.6);
-  animation: fade-in 0.25s ease;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .active-card-label {
@@ -360,12 +289,12 @@ body {
   gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--bg);
-  background: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
   padding: 4px 10px;
   border-radius: 999px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   margin-bottom: 14px;
 }
 
@@ -380,14 +309,14 @@ body {
   flex-shrink: 0;
   width: 52px;
   height: 52px;
-  border-radius: 50%;
-  background: rgba(201, 164, 92, 0.16);
-  color: var(--accent-bright);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .active-card .avatar {
@@ -402,17 +331,19 @@ body {
 }
 
 .active-card-name {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 700;
   color: var(--text-heading);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.active-card-status {
-  margin: 0;
+.active-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 /* ---------- Status badges ---------- */
@@ -426,8 +357,6 @@ body {
   padding: 3px 10px;
   border-radius: 999px;
   width: fit-content;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .status-badge::before {
@@ -440,38 +369,32 @@ body {
 
 .status-badge.status-waiting {
   color: var(--text-secondary);
-  background: rgba(154, 154, 154, 0.12);
+  background: #f2f4f7;
 }
 
 .status-badge.status-called {
-  color: var(--accent-bright);
-  background: rgba(201, 164, 92, 0.14);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .status-badge.status-in_progress {
-  color: var(--accent-bright);
-  background: rgba(201, 164, 92, 0.22);
+  color: #7a5af8;
+  background: #f4f3ff;
 }
 
 .status-badge.status-scheduled {
-  color: var(--text-secondary);
-  background: rgba(154, 154, 154, 0.08);
+  color: #b54708;
+  background: #fffaeb;
 }
 
 .status-badge.status-paid {
   color: var(--success);
-  background: rgba(122, 154, 109, 0.14);
+  background: var(--success-soft);
 }
 
 .status-badge.status-unpaid {
   color: var(--error);
-  background: rgba(176, 82, 74, 0.14);
-}
-
-.active-card-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  background: var(--error-soft);
 }
 
 /* ---------- Action buttons ---------- */
@@ -484,31 +407,30 @@ body {
 .btn {
   flex: 1;
   border: none;
-  border-radius: 12px;
-  padding: 14px 10px;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 10px;
+  padding: 13px 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: filter 0.15s ease, transform 0.05s ease, opacity 0.15s ease;
-  color: var(--text-heading);
+  transition: filter 0.15s ease, transform 0.05s ease, opacity 0.15s ease, background 0.15s ease;
 }
 
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-primary {
   background: var(--accent);
-  color: #14110a;
+  color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -517,20 +439,21 @@ body {
 
 .btn-success {
   background: var(--success);
+  color: #ffffff;
 }
 
 .btn-success:hover:not(:disabled) {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
 }
 
 .btn-danger {
-  background: transparent;
+  background: var(--surface);
   color: var(--error);
-  border: 1px solid var(--error);
+  border: 1px solid #fda29b;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(176, 82, 74, 0.12);
+  background: var(--error-soft);
 }
 
 /* ---------- Queue rows (waiting behind the active client) ---------- */
@@ -549,18 +472,18 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 14px;
-  animation: fade-in 0.2s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .queue-row.is-scheduled {
   border-style: dashed;
-  opacity: 0.8;
 }
 
 .queue-row .avatar {
   width: 36px;
   height: 36px;
   font-size: 14px;
+  border-radius: 9px;
 }
 
 .queue-row-position {
@@ -592,19 +515,78 @@ body {
 }
 
 .queue-row-eta {
-  color: var(--accent-bright);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ---------- Login screen (pick which master you are) ---------- */
+
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 8px 12px;
+  gap: 20px;
 }
 
-@media (min-width: 480px) {
-  .active-card-body {
-    align-items: center;
-  }
+.login-screen-title {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin: 0;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.login-select,
+.login-password {
+  width: 100%;
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.login-select {
+  cursor: pointer;
+}
+
+.login-password::placeholder {
+  color: var(--text-disabled);
+  font-weight: 400;
+}
+
+.login-select:focus,
+.login-password:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.login-error {
+  margin: -4px 0 0;
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-submit {
+  margin-top: 4px;
+  padding: 13px;
+  font-size: 15px;
 }
