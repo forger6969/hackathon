@@ -184,10 +184,20 @@ function renderTodayStats(stats) {
       <span class="stat-label">Hisoblangan</span>
     </div>
     <div class="stat-pill">
-      <span class="stat-value">${stats.hoursWorked}s</span>
+      <span class="stat-value">${formatHours(stats.hoursWorked)}</span>
       <span class="stat-label">Ishlagan</span>
     </div>
   `;
+}
+
+// hoursWorked comes from the backend as decimal hours (e.g. 1.75) — render
+// as "H soat M daq" per tasks.md's "Ч ч М мин" spec, not a raw decimal.
+function formatHours(hoursWorked) {
+  const totalMin = Math.round((hoursWorked || 0) * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h < 1) return `${m} daq`;
+  return `${h} soat ${m} daq`;
 }
 
 function formatSum(n) {
