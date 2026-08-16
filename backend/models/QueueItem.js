@@ -13,7 +13,17 @@ const queueItemSchema = new mongoose.Schema({
   scheduledFor: { type: Date, default: null },
   createdByReception: { type: Boolean, default: false },
   paid: { type: Boolean, default: false },
-  paymentMethod: { type: String, enum: ['cash', 'card', null], default: null },
+  // 'split' when more than one distinct method was used — kept for simple
+  // display; `payments` below is the authoritative record for the ledger.
+  paymentMethod: { type: String, enum: ['cash', 'card', 'split', null], default: null },
+  payments: [
+    {
+      method: { type: String, enum: ['cash', 'card'], required: true },
+      amount: { type: Number, required: true },
+      at: { type: Date, default: Date.now },
+    },
+  ],
+  changeGiven: { type: Number, default: 0 },
   skipCount: { type: Number, default: 0 },
   calledAt: { type: Date, default: null },
   doneAt: { type: Date, default: null },

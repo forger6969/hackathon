@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const createQueueRouter = require('./routes/queue');
 const ownerRouter = require('./routes/owner');
 const catalogRouter = require('./routes/catalog');
+const cashRouter = require('./routes/cash');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api/queue', createQueueRouter(io));
 app.use('/api/owner', ownerRouter);
+app.use('/api/cash', cashRouter);
 app.use('/api', catalogRouter);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
