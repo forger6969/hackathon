@@ -4,12 +4,23 @@ import { app } from '../core/store.js';
 import { onEvent } from '../core/socket.js';
 import * as api from '../core/api.js';
 import { go } from '../router.js';
-import { KpiCard } from '../ui/KpiCard.js';
-import { StackedAreaChart } from '../ui/StackedAreaChart.js';
 import { icons } from '../ui/icons.js';
 import { emptyState } from '../ui/Skeleton.js';
 
-const HOURS = Array.from({ length: 13 }, (_, i) => `${9 + i}:00`);
+// ═════════════════════════════════════════════
+// TozaMap-стиль владельческого дашборда:
+// Navbar → KPI Row (5) → Pipeline Kanban → Alerts/Scheduled → Workload+Recent
+// ═════════════════════════════════════════════
+
+const STATUS = {
+  scheduled:   { ru: 'Записан',       cls: 'badge--teal' },
+  waiting:     { ru: 'Ждёт',          cls: 'badge--waiting' },
+  called:      { ru: 'Вызван',        cls: 'badge--called' },
+  in_progress: { ru: 'В работе',      cls: 'badge--in-progress' },
+  done:        { ru: 'Готово',        cls: 'badge--done' },
+  skipped:     { ru: 'Не пришёл',     cls: 'badge--skipped' },
+  cancelled:   { ru: 'Отменён',       cls: 'badge--cancelled' },
+};
 
 function greeting() {
   const h = new Date().getHours();
@@ -18,411 +29,278 @@ function greeting() {
   return 'Добрый вечер';
 }
 
-const STATUS_MAP = {
-  waiting:     { ru: 'В очереди',   cls: 'badge--waiting' },
-  called:      { ru: 'Вызван',      cls: 'badge--called' },
-  in_progress: { ru: 'В работе',    cls: 'badge--in-progress' },
-  scheduled:   { ru: 'Запись',      cls: 'badge--scheduled' },
-  done:        { ru: 'Готово',      cls: 'badge--done' },
-  skipped:     { ru: 'Не пришёл',   cls: 'badge--skipped' },
-  cancelled:   { ru: 'Отменён',     cls: 'badge--cancelled' },
-};
-
-// Синтетическая волна для sparkline
-function seedWave(peak, points = 12) {
-  const arr = [];
-  for (let i = 0; i < points; i++) {
-    const wave = 0.5 + 0.35 * Math.sin(i * 0.9 + peak * 0.01);
-    const trend = (i / (points - 1)) * 0.4;
-    arr.push(Math.max(0.05, wave + trend) * peak);
-  }
-  return arr;
-}
-
-/** Топ услуг: считаем services через реальный список services + queue */
-function topServices(queueItems, services) {
-  const byId = Object.fromEntries((services || []).map((s) => [s._id, s]));
-  const counts = {};
-  queueItems.forEach((it) => {
-    if (it.status !== 'done') return;
-    // API возвращает serviceId, но не serviceName в /api/queue
-    const svc = byId[it.serviceId];
-    const name = svc?.name || 'Другое';
-    if (!counts[name]) counts[name] = { name, cnt: 0, revenue: 0, color: null };
-    counts[name].cnt += 1;
-    counts[name].revenue += svc?.price || 0;
-  });
-  const list = Object.values(counts).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
-  const max = Math.max(1, ...list.map((x) => x.revenue));
-  const palette = ['#3C50E0', '#219653', '#FFA70B', '#259AE6', '#D34053', '#8B5CF6'];
-  list.forEach((it, i) => { it.color = palette[i % palette.length]; it.pct = Math.round((it.revenue / max) * 100); });
-  return list;
-}
-
-/** Агрегация по часам для чарта */
-function aggregateByHour(queueItems, services) {
-  const byId = Object.fromEntries((services || []).map((s) => [s._id, s]));
-  const known = topServices(queueItems, services).map((x) => x.name);
-  const SERIES = known.length
-    ? known.map((n, i) => ({ name: n, color: ['#3C50E0', '#219653', '#FFA70B', '#259AE6', '#D34053', '#8B5CF6'][i % 6] }))
-    : [{ name: 'Услуги', color: '#3C50E0' }];
-
-  const buckets = HOURS.map((label) => ({ label, buckets: Object.fromEntries(SERIES.map((s) => [s.name, 0])) }));
-  queueItems.forEach((item) => {
-    if (item.status !== 'done') return;
-    const svc = byId[item.serviceId];
-    const name = svc?.name || 'Услуги';
-    const d = new Date(item.doneAt || item.updatedAt || item.createdAt || Date.now());
-    const idx = Math.max(0, Math.min(12, d.getHours() - 9));
-    if (buckets[idx].buckets[name] !== undefined) buckets[idx].buckets[name] += svc?.price || 0;
-  });
-  return { data: buckets, series: SERIES };
-}
-
-/** Live payments feed: только paid и done */
-function paymentsList(queueItems, services) {
-  const byId = Object.fromEntries((services || []).map((s) => [s._id, s]));
-  return queueItems
-    .filter((it) => it.paid || it.status === 'done')
-    .map((it) => {
-      const svc = byId[it.serviceId];
-      const ts = it.doneAt ? new Date(it.doneAt).getTime() : (it.updatedAt ? new Date(it.updatedAt).getTime() : Date.now());
-      return {
-        clientName: it.clientName,
-        masterName: it.masterName || '—',
-        serviceName: svc?.name || 'Услуга',
-        amount: svc?.price || 0,
-        method: it.paymentMethod || null,
-        paid: it.paid,
-        ts,
-      };
-    })
-    .sort((a, b) => b.ts - a.ts)
-    .slice(0, 12);
+function svcOf(id, services) {
+  return services.find((s) => s._id === id);
 }
 
 export default function Overview() {
-  const s = app.get();
-  const today = s.today || {};
+  const state = app.get();
+  const today = state.today || {};
+  const services = state.services || [];
+  const masters = state.masters || [];
+  const queue = state.queue || [];
 
   const revenue     = today.revenue || 0;
   const cashRevenue = today.cashRevenue || 0;
   const cardRevenue = today.cardRevenue || 0;
   const clients     = today.clientsServed || 0;
-  const avg         = clients ? Math.round(revenue / clients) : 0;
   const onDuty      = today.onDutyMasters || 0;
   const total       = today.totalMasters  || 0;
   const lowCount    = (today.lowStock || []).length;
+  const activeQueue = queue.filter((q) => ['waiting', 'called', 'in_progress', 'scheduled'].includes(q.status)).length;
 
-  // ── Header ─────────────────────────────
+  // ── Navbar (page-header) ───────────────
   const dateStr = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-  const header = el('div.page-header', {}, [
+  const header = el('header.dash-navbar', {}, [
     el('div', {}, [
-      el('h1.page-title', { text: `${greeting()}, Владелец` }),
-      el('p.page-sub', { text: `${dateStr} · ${onDuty} из ${total} мастеров на линии` }),
+      el('h1.dash-navbar-title', { text: `${greeting()}, Владелец` }),
+      el('p.dash-navbar-sub', { text: `${dateStr} · живое состояние салона` }),
+    ]),
+    el('div', { style: { display: 'flex', gap: '10px' } }, [
+      api.isDemo() ? el('span.demo-badge', {}, ['DEMO · Atlas не подключен']) : null,
+      el('button.btn-primary', { on: { click: () => go('/queue') } }, [icons.queue({ size: 14 }), el('span', { text: 'Открыть очередь' })]),
     ]),
   ]);
 
-  // ── KPI Row ────────────────────────────
-  const kpiRevenue = KpiCard({ label: 'Выручка сегодня', value: revenue, unit: 'сум', icon: icons.finance, tone: 'gold',    sparkData: seedWave(revenue || 60_000), sparkColor: '#3C50E0', delay: 0 });
-  const kpiClients = KpiCard({ label: 'Клиентов',        value: clients, icon: icons.clients, tone: 'neutral',              sparkData: seedWave(Math.max(clients, 4)), sparkColor: '#219653', delay: 100 });
-  const kpiAvg     = KpiCard({ label: 'Средний чек',     value: avg,     unit: 'сум', icon: icons.today,   tone: 'neutral', sparkData: seedWave(avg || 25_000), sparkColor: '#FFA70B', delay: 200 });
-  const kpiDuty    = KpiCard({ label: 'На линии',        value: onDuty,  unit: `/ ${total}`, icon: icons.masters, tone: 'neutral', sparkData: seedWave(Math.max(onDuty, 1)), sparkColor: '#259AE6', delay: 300 });
-  const kpiLow     = KpiCard({ label: 'Заканчивается',   value: lowCount, icon: icons.warn, tone: 'warn',       sparkData: seedWave(lowCount + 1), sparkColor: '#D34053', delay: 400 });
-  const kpiRow = el('section.section-grid.section-grid--kpi', {}, [kpiRevenue, kpiClients, kpiAvg, kpiDuty, kpiLow]);
-
-  // ── Cash/Card split chip row (под KPI) ─
-  const cashCardRow = el('div', { style: { display: 'flex', gap: '8px', marginTop: '-8px' } }, [
-    el('span.pay-chip.pay-chip--cash', { html: `💵 Наличные · <strong>${fmt(cashRevenue)}</strong> сум` }),
-    el('span.pay-chip.pay-chip--card', { html: `💳 Карта · <strong>${fmt(cardRevenue)}</strong> сум` }),
+  // ── KPI Row (TozaMap 5-column) ─────────
+  const kpiRow = el('section.kpi5', {}, [
+    statCard({ icon: icons.clients, label: 'Клиентов сегодня', value: fmt(clients), hint: 'за смену',      accent: 'accent-blue' }),
+    statCard({ icon: icons.finance, label: 'Выручка сегодня',  value: fmt(revenue) + ' сум', hint: `💵 ${fmt(cashRevenue)} · 💳 ${fmt(cardRevenue)}`, accent: 'accent-emerald', positive: true }),
+    statCard({ icon: icons.masters, label: 'Мастеров на линии', value: `${onDuty}`, hint: `из ${total} всего`, accent: 'accent-teal' }),
+    statCard({ icon: icons.queue,   label: 'В очереди сейчас', value: fmt(activeQueue), hint: `waiting + scheduled`, accent: 'accent-amber' }),
+    statCard({ icon: icons.warn,    label: 'Заканчивается склад', value: fmt(lowCount), hint: lowCount > 0 ? 'нужно докупить' : 'всё в порядке', accent: lowCount > 0 ? 'accent-danger' : 'accent-muted', alert: lowCount > 0 }),
   ]);
 
-  // ── Big Chart + Top services ───────────
-  const { data: chartData, series } = aggregateByHour(s.queue || [], s.services);
-  const nowHour = new Date().getHours();
-  const nowIdx = Math.max(0, Math.min(12, nowHour - 9));
-  const chart = StackedAreaChart({ data: chartData, series, nowIdx, W: 720, H: 240 });
+  // ── Pipeline (Kanban 4 columns) ────────
+  const pipeCols = [
+    { key: 'scheduled',   label: 'Записаны',   sublabel: 'ждут своего времени',       icon: icons.appointments, accent: 'accent-teal' },
+    { key: 'waiting',     label: 'В очереди',  sublabel: 'пришли, ждут мастера',      icon: icons.queue,        accent: 'accent-blue' },
+    { key: 'in_progress', label: 'В работе',   sublabel: 'мастер стрижёт прямо сейчас', icon: icons.masters,    accent: 'accent-emerald' },
+    { key: 'done',        label: 'Готово',     sublabel: 'обслужены сегодня',          icon: icons.check,       accent: 'accent-muted' },
+  ];
+  const totalPipeline = queue.filter((q) => ['scheduled', 'waiting', 'called', 'in_progress'].includes(q.status)).length;
 
-  const legend = el('div.legend', {}, series.map((sv) => el('span.legend-item', {}, [
-    el('span.legend-swatch', { style: { background: sv.color } }),
-    el('span', { text: sv.name }),
-  ])));
-
-  const chartCard = el('div.card.chart-rise', { style: { '--d': '540ms' } }, [
-    el('header.chart-head', {}, [
+  const pipelineSection = el('section.dash-section', {}, [
+    el('header.dash-section-head', {}, [
       el('div', {}, [
-        el('div.eyebrow-sm', { text: 'выручка · по часам' }),
-        el('h2.chart-title', { text: 'Смена дня' }),
+        el('h2.dash-section-title', { text: 'Pipeline салона' }),
+        el('p.dash-section-sub', { text: `${totalPipeline} активных клиентов в обработке · ${clients} завершено` }),
       ]),
-      legend,
+      el('button.btn-ghost', { on: { click: () => go('/queue') } }, ['Все →']),
     ]),
-    el('div.chart-wrap', {}, [chart]),
+    el('div.kanban', {}, pipeCols.map((col) => {
+      // Для in_progress включаем called
+      const filter = col.key === 'in_progress'
+        ? (q) => q.status === 'in_progress' || q.status === 'called'
+        : (q) => q.status === col.key;
+      const items = queue.filter(filter).slice(0, 5);
+      const count = queue.filter(filter).length;
+      return kanbanCol(col, items, count, services, masters);
+    })),
   ]);
 
-  const topList = el('ul.top-svc-list');
-  function renderTopSvc() {
-    const top = topServices(app.get().queue || [], app.get().services || []);
-    topList.innerHTML = '';
-    if (top.length === 0) { topList.append(el('li.top-svc-empty', { text: 'Нет завершённых услуг за сегодня' })); return; }
-    top.forEach((it) => {
-      topList.append(el('li.top-svc-item', {}, [
-        el('span.top-svc-name', { text: it.name }),
-        el('span.top-svc-val', { text: `${fmt(it.revenue)} · ${it.cnt}×` }),
-        el('div.top-svc-bar', {}, [
-          el('div.top-svc-bar-fill', { style: { width: it.pct + '%', background: it.color } }),
+  // ── Alerts row: low stock + scheduled today ─
+  const scheduledToday = queue
+    .filter((q) => q.status === 'scheduled' && q.scheduledFor)
+    .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor))
+    .slice(0, 5);
+
+  const alertsRow = el('section.section-grid.section-grid--2', {}, [
+    // Low stock
+    el('div.dash-card', {}, [
+      el('header.dash-card-head', { class: ['dash-card-head--warn'] }, [
+        el('div.dash-card-icon', { class: ['dash-card-icon--warn'], html: icons.warn({ size: 18 }) }),
+        el('div', { style: { flex: 1 } }, [
+          el('h3', { text: 'Заканчивается на складе', style: { margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-strong)' } }),
+          el('p', { text: 'Позвонить поставщику и заказать', style: { margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' } }),
         ]),
-      ]));
-    });
-  }
-  renderTopSvc();
-  const topCard = el('div.card.chart-rise', { style: { '--d': '640ms' } }, [
-    el('header.chart-head', {}, [
-      el('div', {}, [
-        el('div.eyebrow-sm', { text: 'спрос сегодня' }),
-        el('h2.chart-title', { text: 'Топ услуг' }),
+        el('span.dash-count-badge', { class: ['dash-count-badge--warn'], text: String(lowCount) }),
       ]),
-    ]),
-    topList,
-  ]);
-
-  const chartRow = el('section.chart-row', {}, [chartCard, topCard]);
-
-  // ── Live Queue Preview ─────────────────
-  function queuePreview() {
-    const items = (app.get().queue || []).filter((q) => ['waiting', 'called', 'in_progress'].includes(q.status)).slice(0, 6);
-    if (items.length === 0) {
-      return emptyState({ icon: icons.queue({ size: 24 }), title: 'Очередь пуста', description: 'Как только клиент запишется — он появится здесь' });
-    }
-    const wrap = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } });
-    items.forEach((q, idx) => {
-      const st = STATUS_MAP[q.status] || { ru: q.status, cls: 'badge--muted' };
-      wrap.append(el('div', {
-        style: { display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)' },
-      }, [
-        el('div.q-pos', { text: String(idx + 1) }),
-        el('div', { style: { flex: 1, minWidth: 0 } }, [
-          el('div', { text: q.clientName || '—', style: { fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' } }),
-          el('div', { text: `${q.masterName || '—'} · ${q.phone || 'без телефона'}`, style: { fontSize: '11px', color: 'var(--text-muted)', fontFamily: "var(--font-mono)", marginTop: '2px' } }),
-        ]),
-        el('span', { class: `badge ${st.cls}`, text: st.ru }),
-      ]));
-    });
-    return wrap;
-  }
-
-  const queueWrap = el('div');
-  queueWrap.append(queuePreview());
-  const queueCard = el('div.card.chart-rise', { style: { '--d': '740ms' } }, [
-    el('header.chart-head', {}, [
-      el('div', {}, [
-        el('div.eyebrow-sm', { text: 'реалтайм' }),
-        el('h2.chart-title', { text: 'Очередь сейчас' }),
-      ]),
-      el('button.btn-ghost', {
-        style: { height: '32px', padding: '0 12px', fontSize: '12px' },
-        on: { click: () => go('/queue') },
-        text: 'Открыть →',
-      }),
-    ]),
-    queueWrap,
-  ]);
-
-  // ── Active Masters Preview ─────────────
-  function mastersPreview() {
-    const active = (app.get().masters || []).filter((m) => m.onDuty).slice(0, 5);
-    if (active.length === 0) {
-      return emptyState({ icon: icons.masters({ size: 24 }), title: 'Никого на линии', description: 'Мастера ещё не вышли на смену' });
-    }
-    return el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' } }, active.map((m) => (
-      el('div', {
-        style: { background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px', cursor: 'pointer' },
-        on: { click: () => go('/masters') },
-      }, [
-        el('div.master-avatar', { text: initials(m.name), style: { width: '40px', height: '40px', fontSize: '14px' } }),
-        el('div', { text: m.name, style: { fontSize: '13px', fontWeight: 700, color: 'var(--text-strong)' } }),
-        el('div', { style: { display: 'flex', alignItems: 'center', gap: '5px' } }, [
-          el('div.dot-online'),
-          el('span', { text: 'На линии', style: { fontSize: '10px', color: 'var(--success)', fontWeight: 600 } }),
-        ]),
-      ])
-    )));
-  }
-  const mastersWrap = el('div');
-  mastersWrap.append(mastersPreview());
-  const mastersCard = el('div.card.chart-rise', { style: { '--d': '820ms' } }, [
-    el('header.chart-head', {}, [
-      el('div', {}, [
-        el('div.eyebrow-sm', { text: 'команда' }),
-        el('h2.chart-title', { text: 'Активные мастера' }),
-      ]),
-      el('button.btn-ghost', {
-        style: { height: '32px', padding: '0 12px', fontSize: '12px' },
-        on: { click: () => go('/masters') },
-        text: 'Все →',
-      }),
-    ]),
-    mastersWrap,
-  ]);
-
-  const liveRow = el('section.section-grid.section-grid--2', {}, [queueCard, mastersCard]);
-
-  // ── Low Stock Banner ───────────────────
-  let lowSection = null;
-  if (lowCount > 0) {
-    const chips = el('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' } }, (today.lowStock || []).map((it) => (
-      el('div', { style: { padding: '6px 12px', borderRadius: '8px', background: 'rgba(211,64,83,0.10)', border: '1px solid rgba(211,64,83,0.25)', fontSize: '12px', color: 'var(--danger)', fontWeight: 600 } }, [
-        el('span', { text: it.name }),
-        el('span', { text: ` · ${it.qty} ${it.unit || ''}`, style: { color: 'var(--text-muted)', fontWeight: 500 } }),
-      ])
-    )));
-    lowSection = el('div.card.alert-card.chart-rise', { style: { '--d': '900ms' } }, [
-      el('div.alert-strip'),
-      el('div.alert-body', {}, [
-        el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' } }, [
-          el('div', { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, [
-            el('div.alert-icon', { html: icons.warn({ size: 18 }) }),
-            el('div', {}, [
-              el('div.eyebrow-sm.eyebrow-sm--warn', { text: 'внимание' }),
-              el('div.alert-title', { text: `${lowCount} позиций заканчиваются` }),
+      lowCount === 0
+        ? el('div', { style: { padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' } }, ['Всё в наличии 👍'])
+        : el('ul.dash-list', {}, (today.lowStock || []).map((s) => el('li.dash-list-item', {}, [
+            el('div', { style: { flex: 1 } }, [
+              el('div', { text: s.name, style: { fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' } }),
+              el('div', { text: `порог ${s.lowThreshold} ${s.unit || ''}`, style: { fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' } }),
             ]),
-          ]),
-          el('button.btn-ghost', { style: { height: '32px', padding: '0 12px', fontSize: '12px' }, on: { click: () => go('/inventory') }, text: 'Склад →' }),
-        ]),
-        chips,
-      ]),
-    ]);
-  }
-
-  // ── Payments Feed ──────────────────────
-  const paymentsCard = el('div.card.feed-card.chart-rise', { style: { '--d': '980ms' } }, [
-    el('header.chart-head', {}, [
-      el('div', {}, [
-        el('div.eyebrow-sm', { text: 'финансы live' }),
-        el('h2.chart-title', { text: 'Оплаты и завершения' }),
-      ]),
-      el('button.btn-ghost', { style: { height: '32px', padding: '0 12px', fontSize: '12px' }, on: { click: () => go('/finance') }, text: 'Финансы →' }),
+            el('div', { style: { textAlign: 'right' } }, [
+              el('div', { text: `${s.qty}`, style: { fontSize: '15px', fontWeight: 700, color: 'var(--danger)', fontVariantNumeric: 'tabular-nums' } }),
+              el('div', { text: 'осталось', style: { fontSize: '10px', color: 'var(--text-muted)' } }),
+            ]),
+          ]))),
     ]),
-    el('ul.feed-list', { id: 'payments-feed' }),
-  ]);
 
-  function renderPayments() {
-    const feed = paymentsCard.querySelector('#payments-feed');
-    const items = paymentsList(app.get().queue || [], app.get().services || []);
-    feed.innerHTML = '';
-    if (items.length === 0) {
-      feed.append(el('li.feed-empty', { text: 'Пока никто не оплатил и не завершил услугу — ждём событий' }));
-      return;
-    }
-    items.forEach((it) => {
-      const methodChip = it.paid
-        ? (it.method === 'card'
-          ? '<span class="pay-chip pay-chip--card">💳 карта</span>'
-          : '<span class="pay-chip pay-chip--cash">💵 нал</span>')
-        : '<span class="pay-chip">завершено · не оплачено</span>';
-      feed.append(el('li.feed-item', {}, [
-        el('div.feed-avatar', { text: initials(it.masterName) }),
-        el('div.feed-text', {}, [
-          el('div', { html: `<strong>${escapeHtml(it.clientName)}</strong> · <span class="feed-svc">${escapeHtml(it.serviceName)}</span> · мастер ${escapeHtml(it.masterName)}` }),
-          el('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' } }, [
-            el('span.feed-time', { text: `${fmtTime(it.ts)} · ${timeAgo(it.ts)}` }),
-            el('span', { html: methodChip, style: { marginLeft: '4px' } }),
-          ]),
+    // Scheduled today
+    el('div.dash-card', {}, [
+      el('header.dash-card-head', {}, [
+        el('div.dash-card-icon', { class: ['dash-card-icon--teal'], html: icons.appointments({ size: 18 }) }),
+        el('div', { style: { flex: 1 } }, [
+          el('h3', { text: 'Записи на сегодня', style: { margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-strong)' } }),
+          el('p', { text: 'клиенты придут в определённое время', style: { margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' } }),
         ]),
-        el('div.feed-amount', { text: '+' + fmt(it.amount) + ' сум' }),
-      ]));
-    });
-  }
-  renderPayments();
-
-  // ── Live events banner (raw feed) ──────
-  const eventsCard = el('div.card.feed-card.chart-rise', { style: { '--d': '1060ms' } }, [
-    el('header.chart-head', {}, [
-      el('div', {}, [
-        el('div.eyebrow-sm', { text: 'события' }),
-        el('h2.chart-title', { text: 'Что происходит в салоне' }),
+        el('span.dash-count-badge', { text: String(scheduledToday.length) }),
       ]),
-    ]),
-    el('ul.feed-list', { id: 'events-feed' }, [
-      el('li.feed-empty', { text: 'Как только произойдёт событие — оно появится здесь' }),
+      scheduledToday.length === 0
+        ? el('div', { style: { padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' } }, ['Записей нет'])
+        : el('ul.dash-list', {}, scheduledToday.map((q) => el('li.dash-list-item', {}, [
+            el('div.dash-time-chip', {}, [
+              el('div', { text: fmtTime(q.scheduledFor), style: { fontSize: '13px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' } }),
+            ]),
+            el('div', { style: { flex: 1, minWidth: 0 } }, [
+              el('div', { text: q.clientName, style: { fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' } }),
+              el('div', { text: `${q.masterName || '—'} · ${svcOf(q.serviceId, services)?.name || '—'}`, style: { fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' } }),
+            ]),
+          ]))),
     ]),
   ]);
-  const eventItems = [];
-  function addEvent(html) {
-    const feed = eventsCard.querySelector('#events-feed');
-    eventItems.unshift({ html, ts: Date.now() });
-    if (eventItems.length > 20) eventItems.pop();
-    feed.innerHTML = '';
-    eventItems.forEach((it) => {
-      feed.append(el('li.feed-item', {}, [
-        el('div.feed-dot'),
-        el('div.feed-text', {}, [
-          el('div', { html: it.html }),
-          el('div.feed-time', { text: timeAgo(it.ts) }),
+
+  // ── Workload (по мастерам, чтоб видеть кто загружен) + Recent orders ─
+  const perMaster = {};
+  masters.forEach((m) => { perMaster[m._id] = { master: m, done: 0, revenue: 0, waiting: 0 }; });
+  queue.forEach((q) => {
+    const rec = perMaster[q.masterId];
+    if (!rec) return;
+    if (q.status === 'done') { rec.done++; rec.revenue += svcOf(q.serviceId, services)?.price || 0; }
+    if (['waiting', 'called', 'in_progress'].includes(q.status)) rec.waiting++;
+  });
+  const workloadList = Object.values(perMaster).sort((a, b) => b.done - a.done);
+  const maxDone = Math.max(1, ...workloadList.map((w) => w.done));
+
+  const workloadRecent = el('section.section-grid', { style: { gridTemplateColumns: '1fr 1.5fr' } }, [
+    // Workload
+    el('div.dash-card', {}, [
+      el('header.dash-card-head-simple', {}, [
+        el('h3', { text: 'Нагрузка мастеров', style: { margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-strong)' } }),
+        el('p', { text: 'клиентов сегодня · выручка', style: { margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' } }),
+      ]),
+      workloadList.length === 0
+        ? el('div', { style: { padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' } }, ['Пока никто не отработал'])
+        : el('ul.dash-list', {}, workloadList.slice(0, 8).map((w) => {
+            const pct = Math.round((w.done / maxDone) * 100);
+            return el('li.dash-workload-row', {
+              on: { click: () => go('/masters') },
+              style: { cursor: 'pointer' },
+            }, [
+              el('div.dash-workload-avatar', { text: initials(w.master.name) }),
+              el('div', { style: { flex: 1, minWidth: 0 } }, [
+                el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' } }, [
+                  el('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+                    el('span', { text: w.master.name, style: { fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' } }),
+                    w.master.onDuty ? el('span.dot-online') : null,
+                  ]),
+                  el('span', { text: `${w.done} · ${fmtShort(w.revenue)}`, style: { fontSize: '12px', fontWeight: 700, color: 'var(--text-strong)', fontVariantNumeric: 'tabular-nums' } }),
+                ]),
+                el('div.dash-progress', {}, [
+                  el('div.dash-progress-fill', { style: { width: pct + '%' } }),
+                ]),
+              ]),
+            ]);
+          })),
+    ]),
+
+    // Recent orders
+    el('div.dash-card', {}, [
+      el('header.dash-card-head-simple', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' } }, [
+        el('div', {}, [
+          el('h3', { text: 'Последние транзакции', style: { margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-strong)' } }),
+          el('p', { text: 'клиенты, оплаты, статусы', style: { margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' } }),
         ]),
-      ]));
-    });
-  }
+        el('button.dash-link', { on: { click: () => go('/finance') } }, ['Финансы →']),
+      ]),
+      (() => {
+        const recent = queue
+          .filter((q) => q.status === 'done' || q.paid)
+          .sort((a, b) => new Date(b.doneAt || b.updatedAt || 0) - new Date(a.doneAt || a.updatedAt || 0))
+          .slice(0, 8);
+        if (recent.length === 0) return el('div', { style: { padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' } }, ['Пока нет транзакций']);
+        return el('table.dash-table', {}, [
+          el('thead', {}, [el('tr', {}, [
+            el('th', { text: 'Клиент' }),
+            el('th', { text: 'Услуга · Мастер' }),
+            el('th', { class: 'col-r', text: 'Сумма' }),
+            el('th', { class: 'col-r', text: 'Оплата' }),
+            el('th', { class: 'col-r', text: 'Время' }),
+          ])]),
+          el('tbody', {}, recent.map((q) => {
+            const svc = svcOf(q.serviceId, services);
+            const ts = q.doneAt || q.updatedAt || q.createdAt;
+            return el('tr', { on: { click: () => go('/queue') }, style: { cursor: 'pointer' } }, [
+              el('td', { html: `<div style="display:flex;align-items:center;gap:8px"><div class="dash-tiny-avatar">${escapeHtml(initials(q.clientName))}</div><span style="font-weight:600;color:var(--text-strong)">${escapeHtml(q.clientName)}</span></div>` }),
+              el('td', { html: `<div style="font-size:12.5px">${escapeHtml(svc?.name || '—')}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">${escapeHtml(q.masterName || '—')}</div>` }),
+              el('td', { class: 'col-r col-mono', html: `<strong style="color:var(--text-strong)">${fmt(svc?.price || 0)}</strong>` }),
+              el('td', { class: 'col-r', html: q.paid
+                ? (q.paymentMethod === 'card' ? '<span class="pay-chip pay-chip--card">💳 карта</span>' : '<span class="pay-chip pay-chip--cash">💵 нал</span>')
+                : '<span class="pay-chip">не оплачено</span>' }),
+              el('td', { class: 'col-r col-mono', style: { color: 'var(--text-muted)' }, text: ts ? fmtTime(ts) : '—' }),
+            ]);
+          })),
+        ]);
+      })(),
+    ]),
+  ]);
 
-  // ── Refresh function for socket events ─
-  function refreshAll() {
-    // KPI card updates
-    const s2 = app.get();
-    const t2 = s2.today || {};
-    kpiRevenue.update({ value: t2.revenue || 0 });
-    kpiClients.update({ value: t2.clientsServed || 0 });
-    const avg2 = t2.clientsServed ? Math.round(t2.revenue / t2.clientsServed) : 0;
-    kpiAvg.update({ value: avg2 });
-    kpiDuty.update({ value: t2.onDutyMasters || 0 });
-    kpiLow.update({ value: (t2.lowStock || []).length });
-
-    // Cash/Card chips
-    cashCardRow.children[0].innerHTML = `💵 Наличные · <strong>${fmt(t2.cashRevenue || 0)}</strong> сум`;
-    cashCardRow.children[1].innerHTML = `💳 Карта · <strong>${fmt(t2.cardRevenue || 0)}</strong> сум`;
-
-    // Chart
-    const { data, series: s3 } = aggregateByHour(s2.queue || [], s2.services);
-    chart.update({ data, series: s3 });
-
-    // Sub-blocks
-    renderTopSvc();
-    queueWrap.innerHTML = ''; queueWrap.append(queuePreview());
-    mastersWrap.innerHTML = ''; mastersWrap.append(mastersPreview());
-    renderPayments();
-  }
-
-  // Live socket
-  const off = onEvent('queue:update', async ({ masterId, queue: q }) => {
-    const master = (app.get().masters || []).find((m) => String(m._id) === String(masterId));
-    const top = q && q[0];
-    if (top && master) {
-      const stTag = STATUS_MAP[top.status];
-      const paidBit = top.paid
-        ? (top.paymentMethod === 'card' ? ' · <span class="pay-chip pay-chip--card">💳 карта</span>' : ' · <span class="pay-chip pay-chip--cash">💵 нал</span>')
-        : '';
-      addEvent(`<strong>${escapeHtml(master.name)}</strong> · клиент «${escapeHtml(top.clientName)}» → ${stTag ? stTag.ru.toLowerCase() : top.status}${paidBit}`);
-    }
-    // Полное обновление данных
+  // ── Live socket rewrite ─
+  const off = onEvent('queue:update', async () => {
     try {
       const [t, q2] = await Promise.all([api.owner.today(), api.queue.all()]);
       app.set({ today: t, queue: q2 });
-      refreshAll();
-    } catch (err) { console.warn('refresh failed', err); }
+    } catch (err) {}
   });
   window.addEventListener('route:changed', () => off?.(), { once: true });
 
-  // ── Subscribe to store for immediate updates on external refresh ─
-  const unsub = app.subscribe(() => refreshAll());
-  window.addEventListener('route:changed', () => unsub?.(), { once: true });
-
-  // ── Compose ────────────────────────────
   return el('div', { style: { display: 'flex', flexDirection: 'column', gap: '24px' } }, [
     header,
     kpiRow,
-    cashCardRow,
-    chartRow,
-    liveRow,
-    ...(lowSection ? [lowSection] : []),
-    paymentsCard,
-    eventsCard,
+    pipelineSection,
+    alertsRow,
+    workloadRecent,
+  ]);
+}
+
+// ── Helpers ────────────────────────────────────
+function statCard({ icon, label, value, hint, accent, positive, alert }) {
+  return el('div.dash-stat-card', { class: [alert ? 'is-alert' : ''] }, [
+    el('div.dash-stat-head', {}, [
+      el('div.dash-stat-text', {}, [
+        el('p.dash-stat-label', { text: label }),
+        el('p.dash-stat-value', { text: value }),
+      ]),
+      el('div', { class: `dash-stat-icon ${accent}`, html: icon({ size: 16 }) }),
+    ]),
+    el('p', { class: `dash-stat-hint${positive ? ' is-positive' : ''}${alert ? ' is-alert' : ''}`, text: hint }),
+  ]);
+}
+
+function kanbanCol(col, items, count, services, masters) {
+  const svcById = Object.fromEntries(services.map((s) => [s._id, s]));
+  return el('div.kanban-col', {}, [
+    el('header', { class: `kanban-col-head ${col.accent}` }, [
+      el('div.kanban-col-icon', { html: col.icon({ size: 18 }) }),
+      el('div', { style: { flex: 1 } }, [
+        el('div.kanban-col-title', {}, [
+          el('span', { text: col.label }),
+          el('span.kanban-col-count', { text: String(count) }),
+        ]),
+        el('div.kanban-col-sub', { text: col.sublabel }),
+      ]),
+    ]),
+    el('ul.kanban-list', {}, items.length === 0
+      ? [el('li.kanban-empty', { text: 'Пусто' })]
+      : items.map((q) => {
+          const svc = svcById[q.serviceId];
+          return el('li.kanban-item', {}, [
+            el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' } }, [
+              el('div', { style: { flex: 1, minWidth: 0 } }, [
+                el('div', { text: q.clientName, style: { fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' } }),
+                el('div', { text: `${q.masterName || '—'} · ${svc?.name || '—'}`, style: { fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' } }),
+              ]),
+              el('div', { style: { textAlign: 'right', flexShrink: 0 } }, [
+                el('div', { text: fmt(svc?.price || 0), style: { fontSize: '13px', fontWeight: 700, color: 'var(--text-strong)', fontVariantNumeric: 'tabular-nums' } }),
+                q.scheduledFor ? el('div', { text: fmtTime(q.scheduledFor), style: { fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' } }) : null,
+                q.paid ? el('div', { html: q.paymentMethod === 'card' ? '💳' : '💵', style: { fontSize: '10px', marginTop: '2px' } }) : null,
+              ]),
+            ]),
+          ]);
+        })),
   ]);
 }
