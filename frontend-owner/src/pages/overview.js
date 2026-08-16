@@ -58,7 +58,7 @@ export default function Overview() {
     ]),
     el('div', { style: { display: 'flex', gap: '10px' } }, [
       api.isDemo() ? el('span.demo-badge', {}, ['DEMO · Atlas не подключен']) : null,
-      el('button.btn-primary', { on: { click: () => go('/queue') } }, [icons.queue({ size: 14 }), el('span', { text: 'Открыть очередь' })]),
+      el('button.btn-primary', { on: { click: () => go('/queue') } }, [el('span', { html: icons.queue({ size: 14 }) }), el('span', { text: 'Открыть очередь' })]),
     ]),
   ]);
 

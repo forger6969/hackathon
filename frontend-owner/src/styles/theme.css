@@ -4,32 +4,32 @@
    ═══════════════════════════════════════════════ */
 
 :root {
-  /* ── Neutrals (TailAdmin bodydark palette) ── */
-  --body:            #F1F5F9;
-  --surface:         #FFFFFF;
-  --surface-2:       #F9FAFB;
-  --surface-hover:   #F1F5F9;
-  --surface-dark:    #1C2434;        /* Sidebar bg */
-  --surface-dark-2:  #24303F;
+  /* ── Neutrals — milk/cream, matches the master/reception/client palette ── */
+  --body:            #FAF6EC;
+  --surface:         #FFFDF8;
+  --surface-2:       #F5EFE0;
+  --surface-hover:   #F5EFE0;
+  --surface-dark:    #211809;        /* Sidebar bg */
+  --surface-dark-2:  #2C2010;
 
-  --border:          #E2E8F0;
-  --border-strong:   #CBD5E1;
+  --border:          #E8DFC8;
+  --border-strong:   #D4C7A3;
 
   /* Text scale */
-  --text-strong:     #1C2434;
-  --text:            #1C2434;
-  --text-secondary:  #64748B;
-  --text-muted:      #9CA3AF;
-  --text-dim:        #9CA3AF;
-  --text-disabled:   #C2CEE0;
+  --text-strong:     #241B0E;
+  --text:            #3A2F1F;
+  --text-secondary:  #8A7A5C;
+  --text-muted:      #A99A78;
+  --text-dim:        #A99A78;
+  --text-disabled:   #C4B79A;
   --text-inverse:    #FFFFFF;
-  --text-inverse-2:  #DEE4EE;
+  --text-inverse-2:  #E8DFC8;
 
-  /* Brand accent — TailAdmin primary blue */
-  --primary:         #3C50E0;
-  --primary-hover:   #3546C0;
-  --primary-tint:    #EFF4FB;
-  --primary-100:     #E1E8FF;
+  /* Brand accent — gold, not TailAdmin's default blue */
+  --primary:         #C9A45C;
+  --primary-hover:   #B8924A;
+  --primary-tint:    #F3E7C9;
+  --primary-100:     #EEDFB3;
 
   /* Semantic */
   --success:         #219653;
@@ -692,7 +692,7 @@ body {
   padding: 0 16px;
   border-radius: 8px;
   background: var(--primary);
-  color: #FFFFFF;
+  color: #241B0E;
   font-size: 13px;
   font-weight: 600;
   transition: background .15s, transform .1s;
