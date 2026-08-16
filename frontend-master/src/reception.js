@@ -19,11 +19,43 @@ const els = {
   statWaiting: document.getElementById("stat-waiting"),
   statScheduled: document.getElementById("stat-scheduled"),
   statOnDuty: document.getElementById("stat-onduty"),
+  cashBalance: document.getElementById("cash-balance"),
+  cashRevenue: document.getElementById("cash-revenue"),
+  cashCash: document.getElementById("cash-cash"),
+  cashCard: document.getElementById("cash-card"),
+  cashRefunds: document.getElementById("cash-refunds"),
+  cashDeposits: document.getElementById("cash-deposits"),
+  cashWithdrawals: document.getElementById("cash-withdrawals"),
+  depositBtn: document.getElementById("cash-deposit-btn"),
+  withdrawBtn: document.getElementById("cash-withdraw-btn"),
+  cmModal: document.getElementById("cash-movement-modal"),
+  cmTitle: document.getElementById("cash-movement-title"),
+  cmForm: document.getElementById("cash-movement-form"),
+  cmAmount: document.getElementById("cm-amount"),
+  cmMethod: document.getElementById("cm-method"),
+  cmNote: document.getElementById("cm-note"),
+  cmCancel: document.getElementById("cash-movement-cancel"),
+  payModal: document.getElementById("payment-modal"),
+  payTitle: document.getElementById("payment-modal-title"),
+  payDue: document.getElementById("pay-due"),
+  payAlready: document.getElementById("pay-already"),
+  payRemaining: document.getElementById("pay-remaining"),
+  payLines: document.getElementById("pay-lines"),
+  payForm: document.getElementById("payment-form"),
+  payMethod: document.getElementById("pay-method"),
+  payAmount: document.getElementById("pay-amount"),
+  payChange: document.getElementById("pay-change"),
+  payChangeValue: document.getElementById("pay-change-value"),
+  paySubmit: document.getElementById("pay-submit"),
+  payCancel: document.getElementById("payment-cancel"),
 };
 
 let masters = [];
 let salonsById = {};
+let servicesById = {};
 let items = [];
+let cmType = "deposit";
+let payItemId = null;
 
 const STATUS_LABELS = {
   scheduled: "Belgilangan",
@@ -31,6 +63,10 @@ const STATUS_LABELS = {
   called: "Chaqirildi",
   in_progress: "Xizmatda",
 };
+
+function fmt(n) {
+  return new Intl.NumberFormat("uz-UZ").format(Math.round(n || 0));
+}
 
 function setOffline(isOffline) {
   els.offline.classList.toggle("hidden", !isOffline);
@@ -90,6 +126,7 @@ async function loadCatalog() {
   ]);
   masters = allMasters;
   salonsById = Object.fromEntries(salons.map((s) => [s._id, s.name]));
+  servicesById = Object.fromEntries(services.map((s) => [s._id, s]));
 
   els.salon.innerHTML = salons
     .map((s) => `<option value="${s._id}">${escapeHtml(s.name)}</option>`)
@@ -166,21 +203,25 @@ async function refreshMastersStatus() {
 }
 setInterval(refreshMastersStatus, 15000);
 
-async function checkin(id) {
+async function loadCashToday() {
   try {
-    await apiFetch(`/api/queue/${id}/checkin`, { method: "POST" });
-    await loadQueue();
+    const cash = await apiFetch("/api/cash/today");
+    els.cashBalance.textContent = `${fmt(cash.balance)} so'm`;
+    els.cashRevenue.textContent = fmt(cash.revenue);
+    els.cashCash.textContent = fmt(cash.cash);
+    els.cashCard.textContent = fmt(cash.card);
+    els.cashRefunds.textContent = fmt(cash.refunds);
+    els.cashDeposits.textContent = fmt(cash.deposits);
+    els.cashWithdrawals.textContent = fmt(cash.withdrawals);
   } catch (err) {
     setOffline(true);
   }
 }
+setInterval(loadCashToday, 15000);
 
-async function markPaid(id, method) {
+async function checkin(id) {
   try {
-    await apiFetch(`/api/queue/${id}/pay`, {
-      method: "POST",
-      body: JSON.stringify({ method }),
-    });
+    await apiFetch(`/api/queue/${id}/checkin`, { method: "POST" });
     await loadQueue();
   } catch (err) {
     setOffline(true);
@@ -218,12 +259,11 @@ function render() {
         item.status === "scheduled"
           ? `<button class="btn btn-primary" data-checkin="${item._id}">Keldi</button>`
           : "";
-      const payButtons = !item.paid
-        ? `<button class="btn btn-success" data-pay="${item._id}" data-method="cash">💵 Naqd</button>
-           <button class="btn btn-success" data-pay="${item._id}" data-method="card">💳 Karta</button>`
+      const payBtn = !item.paid
+        ? `<button class="btn btn-success" data-open-pay="${item._id}">💳 To'lov</button>`
         : "";
       const paidBadge = item.paid
-        ? `<span class="status-badge status-paid">To'langan${item.paymentMethod ? ` · ${item.paymentMethod === "card" ? "💳" : "💵"}` : ""}</span>`
+        ? `<span class="status-badge status-paid">To'langan${item.paymentMethod ? ` · ${item.paymentMethod === "card" ? "💳" : item.paymentMethod === "split" ? "🔀" : "💵"}` : ""}</span>`
         : `<span class="status-badge status-unpaid">To'lanmagan</span>`;
 
       return `
@@ -237,7 +277,7 @@ function render() {
             ${paidBadge}
           </div>
           <div class="reception-master">${escapeHtml(item.masterName || "")}</div>
-          ${checkinBtn || payButtons ? `<div class="queue-actions">${checkinBtn}${payButtons}</div>` : ""}
+          ${checkinBtn || payBtn ? `<div class="queue-actions">${checkinBtn}${payBtn}</div>` : ""}
         </div>
       `;
     })
@@ -251,10 +291,126 @@ els.list.addEventListener("click", (e) => {
     checkin(checkinBtn.dataset.checkin);
     return;
   }
-  const payBtn = e.target.closest("button[data-pay]");
-  if (payBtn) {
-    payBtn.disabled = true;
-    markPaid(payBtn.dataset.pay, payBtn.dataset.method);
+  const openPayBtn = e.target.closest("button[data-open-pay]");
+  if (openPayBtn) {
+    openPaymentModal(openPayBtn.dataset.openPay);
+  }
+});
+
+// ── Payment modal: due/remaining, split payment lines, change calc ──
+
+function openPaymentModal(itemId) {
+  payItemId = itemId;
+  const item = items.find((i) => i._id === itemId);
+  if (!item) return;
+
+  const service = servicesById[item.serviceId];
+  els.payTitle.textContent = `To'lov — ${item.clientName}`;
+  els.payAmount.value = "";
+  els.payMethod.value = "cash";
+  els.payChange.classList.add("hidden");
+  renderPaymentSummary(item, service);
+
+  els.payModal.classList.remove("hidden");
+}
+
+function renderPaymentSummary(item, service) {
+  const due = service ? service.price : 0;
+  const already = (item.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const remaining = Math.max(0, due - already);
+
+  els.payDue.textContent = `${fmt(due)} so'm`;
+  els.payAlready.textContent = `${fmt(already)} so'm`;
+  els.payRemaining.textContent = `${fmt(remaining)} so'm`;
+  els.payAmount.value = remaining || "";
+
+  els.payLines.innerHTML = (item.payments || [])
+    .map((p) => `<div class="r-pay-line"><span>${p.method === "card" ? "💳 Karta" : "💵 Naqd"}</span><span>${fmt(p.amount)} so'm</span></div>`)
+    .join("");
+}
+
+function updateChangePreview() {
+  const item = items.find((i) => i._id === payItemId);
+  if (!item) return;
+  const service = servicesById[item.serviceId];
+  const due = service ? service.price : 0;
+  const already = (item.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const remaining = Math.max(0, due - already);
+  const entered = Number(els.payAmount.value) || 0;
+
+  if (entered > remaining) {
+    els.payChange.classList.remove("hidden");
+    els.payChangeValue.textContent = `${fmt(entered - remaining)} so'm`;
+  } else {
+    els.payChange.classList.add("hidden");
+  }
+}
+els.payAmount.addEventListener("input", updateChangePreview);
+
+els.payForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const method = els.payMethod.value;
+  const amount = Number(els.payAmount.value);
+  if (!amount || amount <= 0) return;
+
+  els.paySubmit.disabled = true;
+  try {
+    await apiFetch(`/api/queue/${payItemId}/pay`, {
+      method: "POST",
+      body: JSON.stringify({ method, amount }),
+    });
+    await loadQueue();
+    await loadCashToday();
+    const updated = items.find((i) => i._id === payItemId);
+    if (updated && updated.paid) {
+      els.payModal.classList.add("hidden");
+    } else if (updated) {
+      renderPaymentSummary(updated, servicesById[updated.serviceId]);
+      els.payChange.classList.add("hidden");
+    }
+  } catch (err) {
+    setOffline(true);
+  } finally {
+    els.paySubmit.disabled = false;
+  }
+});
+
+els.payCancel.addEventListener("click", () => els.payModal.classList.add("hidden"));
+
+// ── Cash movement modal (manual deposit/withdrawal) ──
+
+function openCashMovement(type) {
+  cmType = type;
+  els.cmTitle.textContent = type === "deposit" ? "Kassaga kirim" : "Kassadan chiqim";
+  els.cmAmount.value = "";
+  els.cmNote.value = "";
+  els.cmModal.classList.remove("hidden");
+}
+
+els.depositBtn.addEventListener("click", () => openCashMovement("deposit"));
+els.withdrawBtn.addEventListener("click", () => openCashMovement("withdrawal"));
+els.cmCancel.addEventListener("click", () => els.cmModal.classList.add("hidden"));
+
+els.cmForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const amount = Number(els.cmAmount.value);
+  if (!amount || amount <= 0) return;
+
+  try {
+    await apiFetch("/api/cash/movement", {
+      method: "POST",
+      body: JSON.stringify({
+        type: cmType,
+        method: els.cmMethod.value,
+        amount,
+        note: els.cmNote.value.trim(),
+        performedBy: "Reception",
+      }),
+    });
+    els.cmModal.classList.add("hidden");
+    await loadCashToday();
+  } catch (err) {
+    setOffline(true);
   }
 });
 
@@ -265,13 +421,17 @@ function connectSocket() {
   socket.on("disconnect", () => setOffline(true));
   // Reception cares about every master at once, so any update just
   // triggers a refetch of the flat cross-master list.
-  socket.on("queue:update", () => loadQueue());
+  socket.on("queue:update", () => {
+    loadQueue();
+    loadCashToday();
+  });
 }
 
 async function init() {
   try {
     await loadCatalog();
     await loadQueue();
+    await loadCashToday();
   } catch (err) {
     setOffline(true);
     els.list.innerHTML = "<p class=\"empty-state\">Backend bilan aloqa yo'q</p>";
