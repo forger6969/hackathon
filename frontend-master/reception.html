@@ -14,10 +14,13 @@
           <span class="r-header-eyebrow">Navbat</span>
           <h1>Reception</h1>
         </div>
-        <form id="code-search-form" class="r-code-search">
-          <input id="code-search-input" type="text" maxlength="6" placeholder="Bron kodi (masalan A1B2C3)" autocomplete="off" />
-          <button type="submit" class="btn btn-primary">Topish</button>
-        </form>
+        <div class="r-code-search">
+          <form id="code-search-form" class="r-code-search-form">
+            <input id="code-search-input" type="text" maxlength="6" placeholder="Bron kodi (masalan A1B2C3)" autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Topish</button>
+          </form>
+          <button type="button" id="scan-qr-btn" class="btn btn-primary r-scan-btn">📷 QR skanerlash</button>
+        </div>
       </header>
       <p id="code-search-error" class="r-code-search-error hidden">Bu kod bo'yicha faol bron topilmadi</p>
 
@@ -210,6 +213,20 @@
             <button type="submit" class="btn btn-primary" id="pay-submit">Qo'shish</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div id="scan-modal" class="r-modal-backdrop hidden">
+      <div class="r-modal r-scan-modal">
+        <h3>QR skanerlash</h3>
+        <div class="r-scan-video-wrap">
+          <video id="scan-video" playsinline muted></video>
+          <div class="r-scan-frame"></div>
+        </div>
+        <p id="scan-error" class="r-code-search-error hidden">Kameraga ruxsat berilmadi yoki topilmadi</p>
+        <div class="r-modal-actions">
+          <button type="button" class="btn-ghost" id="scan-cancel">Yopish</button>
+        </div>
       </div>
     </div>
 

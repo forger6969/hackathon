@@ -509,6 +509,16 @@ button.away.active {
   margin-bottom: 6px;
 }
 
+.qr-box-sm {
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.qr-box-sm canvas {
+  width: 120px;
+  height: 120px;
+}
+
 .booking-code {
   display: inline-block;
   font-family: "Courier New", monospace;

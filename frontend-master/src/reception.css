@@ -41,6 +41,46 @@
 .r-code-search {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.r-code-search-form {
+  display: flex;
+  gap: 8px;
+}
+
+.r-scan-btn {
+  width: auto;
+  white-space: nowrap;
+}
+
+.r-scan-modal {
+  max-width: 420px;
+}
+
+.r-scan-video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #101018;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.r-scan-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.r-scan-frame {
+  position: absolute;
+  inset: 12%;
+  border: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .r-code-search input {

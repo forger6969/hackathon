@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import jsQR from "jsqr";
 import "./style.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -51,6 +52,11 @@ const els = {
   codeForm: document.getElementById("code-search-form"),
   codeInput: document.getElementById("code-search-input"),
   codeError: document.getElementById("code-search-error"),
+  scanBtn: document.getElementById("scan-qr-btn"),
+  scanModal: document.getElementById("scan-modal"),
+  scanVideo: document.getElementById("scan-video"),
+  scanCancel: document.getElementById("scan-cancel"),
+  scanError: document.getElementById("scan-error"),
 };
 
 let masters = [];
@@ -380,23 +386,22 @@ els.payForm.addEventListener("submit", async (e) => {
 
 els.payCancel.addEventListener("click", () => els.payModal.classList.add("hidden"));
 
-// ── Booking-code search (client shows this instead of a scanned QR — see
-// frontend-queue's bookingCode(): last 6 chars of the _id, uppercased) ──
+// ── Booking-code lookup: client shows a QR (or types the code manually).
+// frontend-queue encodes bookingCode() — last 6 chars of the _id, uppercased —
+// both as a scannable QR and as plain text under it. ──
 
 function bookingCode(id) {
   return (id || "").toString().slice(-6).toUpperCase();
 }
 
-els.codeForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const code = els.codeInput.value.trim().toUpperCase();
-  if (!code) return;
+function applyCode(rawCode) {
+  const code = (rawCode || "").trim().toUpperCase();
+  if (!code) return false;
 
   const match = items.find((i) => bookingCode(i._id) === code);
   els.codeError.classList.toggle("hidden", !!match);
-  if (!match) return;
+  if (!match) return false;
 
-  els.codeInput.value = "";
   const card = els.list.querySelector(`[data-id="${match._id}"]`);
   if (card) {
     card.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -406,7 +411,71 @@ els.codeForm.addEventListener("submit", (e) => {
   if (!match.paid) {
     openPaymentModal(match._id);
   }
+  return true;
+}
+
+els.codeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (applyCode(els.codeInput.value)) {
+    els.codeInput.value = "";
+  }
 });
+
+// ── Camera QR scanner (jsQR) — reads the QR frontend-queue renders next to
+// the booking code, then runs it through the same applyCode() lookup. ──
+
+let scanStream = null;
+let scanRafId = null;
+const scanCanvas = document.createElement("canvas");
+const scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
+
+function stopScan() {
+  if (scanRafId) cancelAnimationFrame(scanRafId);
+  scanRafId = null;
+  if (scanStream) {
+    scanStream.getTracks().forEach((t) => t.stop());
+    scanStream = null;
+  }
+  els.scanModal.classList.add("hidden");
+}
+
+function scanFrame() {
+  if (!scanStream) return;
+  const video = els.scanVideo;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+    const imageData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    const decoded = jsQR(imageData.data, imageData.width, imageData.height);
+    if (decoded && decoded.data) {
+      const found = applyCode(decoded.data);
+      if (found) {
+        stopScan();
+        return;
+      }
+    }
+  }
+  scanRafId = requestAnimationFrame(scanFrame);
+}
+
+async function startScan() {
+  els.scanError.classList.add("hidden");
+  els.scanModal.classList.remove("hidden");
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
+    els.scanVideo.srcObject = scanStream;
+    await els.scanVideo.play();
+    scanRafId = requestAnimationFrame(scanFrame);
+  } catch (err) {
+    els.scanError.classList.remove("hidden");
+  }
+}
+
+els.scanBtn.addEventListener("click", startScan);
+els.scanCancel.addEventListener("click", stopScan);
 
 // ── Cash movement modal (manual deposit/withdrawal) ──
 
