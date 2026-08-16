@@ -12,9 +12,12 @@ import {
 
 const app = document.getElementById("app");
 const STORAGE_KEY = "navbat_queue_item";
+const AWAY_KEY = "navbat_away_until";
+const AWAY_MS = 15 * 60 * 1000;
 const STEP_LABELS = ["Usta", "Xizmat", "Vaqt", "Tasdiqlash"];
 
 let socket = null;
+let awayTimerId = null;
 
 const state = {
   step: "salon",
@@ -357,7 +360,7 @@ function renderInfoStep() {
     item.masterName = state.master.name;
     item.serviceName = state.service.name;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(item));
-    localStorage.removeItem("navbat_away");
+    localStorage.removeItem(AWAY_KEY);
     renderResult(item);
   });
 }
@@ -424,7 +427,7 @@ function renderScheduledResult(item) {
     const enriched = isMock ? updated : await enrichWithQueuePosition(updated);
     enriched.__mock = isMock;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
-    localStorage.removeItem("navbat_away");
+    localStorage.removeItem(AWAY_KEY);
     renderResult(enriched);
   });
 }
@@ -475,13 +478,37 @@ function statusLabel(status) {
   }
 }
 
+function awayRemainingMs() {
+  const until = Number(localStorage.getItem(AWAY_KEY));
+  if (!until) return 0;
+  const remaining = until - Date.now();
+  if (remaining <= 0) {
+    localStorage.removeItem(AWAY_KEY);
+    return 0;
+  }
+  return remaining;
+}
+
+function formatCountdown(ms) {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 function renderResult(item) {
   if (item.status === "scheduled") {
     renderScheduledResult(item);
     return;
   }
 
-  const away = localStorage.getItem("navbat_away") === "1";
+  if (awayTimerId) {
+    clearInterval(awayTimerId);
+    awayTimerId = null;
+  }
+
+  const remaining = awayRemainingMs();
+  const away = remaining > 0;
 
   app.innerHTML = `
     <div class="card">
@@ -503,17 +530,34 @@ function renderResult(item) {
         <div class="detail-row"><span>Telefon</span><span>${escapeHtml(item.phone ?? "—")}</span></div>
       </div>
       <button class="away ${away ? "active" : ""}" id="away-btn">
-        ${away ? "Qaytdim" : "15 daqiqaga chiqib kelaman"}
+        ${away ? `Qaytish: ${formatCountdown(remaining)}` : "15 daqiqaga chiqib kelaman"}
       </button>
     </div>
   `;
   renderBookingQR("live-qr", item);
 
-  document.getElementById("away-btn").addEventListener("click", () => {
-    const nowAway = localStorage.getItem("navbat_away") === "1";
-    localStorage.setItem("navbat_away", nowAway ? "0" : "1");
+  const awayBtn = document.getElementById("away-btn");
+  awayBtn.addEventListener("click", () => {
+    if (awayRemainingMs() > 0) {
+      localStorage.removeItem(AWAY_KEY);
+    } else {
+      localStorage.setItem(AWAY_KEY, String(Date.now() + AWAY_MS));
+    }
     renderResult(item);
   });
+
+  if (away) {
+    awayTimerId = setInterval(() => {
+      const left = awayRemainingMs();
+      if (left <= 0) {
+        clearInterval(awayTimerId);
+        awayTimerId = null;
+        renderResult(item);
+        return;
+      }
+      awayBtn.textContent = `Qaytish: ${formatCountdown(left)}`;
+    }, 1000);
+  }
 
   if (!item.__mock) {
     connectSocket(item);
