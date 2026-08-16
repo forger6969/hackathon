@@ -74,6 +74,7 @@ function showLoginScreen(errorMsg = "") {
       <p class="login-screen-title">Kim sifatida kirasiz?</p>
       <form id="login-form" class="login-form">
         <select id="login-master-select" class="login-select">
+          <option value="reception">Reception</option>
           ${mastersList.map((m) => `<option value="${m._id}">${escapeHtml(m.name)}</option>`).join("")}
         </select>
         <input id="login-password" class="login-password" type="password" placeholder="Parol" autocomplete="current-password" required />
@@ -85,12 +86,28 @@ function showLoginScreen(errorMsg = "") {
   document.getElementById("login-form").addEventListener("submit", handleLoginSubmit);
 }
 
+// Reception has no backend account (see CLAUDE.md — no real auth exists yet
+// anywhere in this app), so this is a client-side-only password gate, same
+// trust level as everything else here. Good enough to keep it off passersby
+// at the hackathon booth, not a real security boundary.
+const RECEPTION_PASSWORD = "reception2026";
+
 async function handleLoginSubmit(e) {
   e.preventDefault();
   const form = e.target;
   const submitBtn = form.querySelector(".login-submit");
   const masterId = document.getElementById("login-master-select").value;
   const password = document.getElementById("login-password").value;
+
+  if (masterId === "reception") {
+    if (password === RECEPTION_PASSWORD) {
+      window.location.href = "/reception.html";
+    } else {
+      showLoginScreen("Parol noto'g'ri");
+    }
+    return;
+  }
+
   const master = mastersList.find((m) => m._id === masterId);
   if (!master) return;
 
@@ -391,7 +408,7 @@ function paymentBadgeHtml(item) {
 }
 
 function paymentMethodLabel(method) {
-  return method === "card" ? "karta" : "naqd";
+  return { cash: "naqd", card: "karta", other: "boshqa", split: "aralash" }[method] || method;
 }
 
 function actionsHtml(actions, id) {
