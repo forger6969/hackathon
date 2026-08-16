@@ -173,19 +173,28 @@ async function renderMasterStep() {
     return;
   }
   state.step = "master";
-  state.masters = await safeCall(() => api.getMasters(state.salon._id), mockMasters);
+  state.masters = await safeCall(
+    () => api.getMasters(state.salon._id, true),
+    mockMasters.filter((m) => m.onDuty !== false)
+  );
 
   app.innerHTML = `<div class="wizard">${stepper(0)}<div class="step-title">Ustani tanlang</div><div class="step-sub">${escapeHtml(state.salon.name)}</div><div class="option-list" id="master-list"></div></div>`;
   document.querySelector(".wizard").prepend(backButton(scrollToLocations));
 
   const list = document.getElementById("master-list");
+
+  if (state.masters.length === 0) {
+    list.innerHTML = `<div class="empty-book"><div class="empty-book-title">Hozircha usta smenada yo'q</div><div class="empty-book-sub">Iltimos, birozdan so'ng qayta urinib ko'ring yoki boshqa salonni tanlang</div></div>`;
+    return;
+  }
+
   state.masters.forEach((master) => {
     const el = document.createElement("button");
     el.className = "option-card";
     const avatar = master.photoUrl
       ? `<img class="avatar" src="${escapeHtml(master.photoUrl)}" alt="${escapeHtml(master.name)}" />`
       : `<div class="avatar">${initials(master.name)}</div>`;
-    el.innerHTML = `${avatar}<div><div class="option-title">${escapeHtml(master.name)}</div><div class="option-sub">Usta</div></div>`;
+    el.innerHTML = `${avatar}<div><div class="option-title">${escapeHtml(master.name)}</div><div class="option-sub">Smenada</div></div>`;
     el.addEventListener("click", () => {
       state.master = master;
       state.service = null;
@@ -350,6 +359,10 @@ function renderInfoStep() {
 
 // ---------- Result: scheduled confirmation ----------
 
+function bookingCode(id) {
+  return (id ?? "").toString().slice(-6).toUpperCase();
+}
+
 function renderScheduledResult(item) {
   const time = new Date(item.scheduledFor);
   const label = time.toLocaleString("uz-UZ", {
@@ -364,7 +377,9 @@ function renderScheduledResult(item) {
       <div class="salon-name">Navbat</div>
       <div class="eta">Siz yozildingiz</div>
       <div class="scheduled-time">${label}</div>
-      <div class="eta-sub" style="margin-bottom:24px;">${escapeHtml(item.masterName ?? "")} — ${escapeHtml(item.serviceName ?? "")}</div>
+      <div class="eta-sub" style="margin-bottom:16px;">${escapeHtml(item.masterName ?? "")} — ${escapeHtml(item.serviceName ?? "")}</div>
+      <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
+      <div class="booking-code">${bookingCode(item._id)}</div>
       <button id="checkin-btn">Men keldim</button>
     </div>
   `;
@@ -444,6 +459,9 @@ function renderResult(item) {
       <div class="eta">${formatEta(item.eta)}</div>
       <div class="eta-sub">taxminiy kutish vaqti</div>
       <div class="status-pill ${item.status}">${statusLabel(item.status)}</div>
+      ${item.paid ? `<div class="paid-badge">✅ To'lov tasdiqlandi${item.paymentMethod ? ` (${item.paymentMethod === "card" ? "karta" : "naqd"})` : ""}</div>` : ""}
+      <div class="booking-code-label">Bron kodi — ressepshnga ko'rsating</div>
+      <div class="booking-code booking-code-sm">${bookingCode(item._id)}</div>
       <div class="details">
         <div class="detail-row"><span>Ism</span><span>${escapeHtml(item.clientName ?? "—")}</span></div>
         <div class="detail-row"><span>Telefon</span><span>${escapeHtml(item.phone ?? "—")}</span></div>

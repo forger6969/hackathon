@@ -11,7 +11,13 @@ async function request(path, options) {
 
 export const api = {
   getSalons: () => request("/api/salons"),
-  getMasters: (salonId) => request(salonId ? `/api/masters?salonId=${salonId}` : "/api/masters"),
+  getMasters: (salonId, onDuty) => {
+    const params = new URLSearchParams();
+    if (salonId) params.set("salonId", salonId);
+    if (onDuty) params.set("onDuty", "true");
+    const qs = params.toString();
+    return request(qs ? `/api/masters?${qs}` : "/api/masters");
+  },
   getServices: () => request("/api/services"),
   createQueueItem: (body) =>
     request("/api/queue", { method: "POST", body: JSON.stringify(body) }),

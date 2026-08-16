@@ -4,8 +4,8 @@ export const mockSalons = [
 ];
 
 export const mockMasters = [
-  { _id: "mock-aziz", name: "Aziz", photoUrl: "", avgServiceTimeMs: 20 * 60 * 1000, active: true },
-  { _id: "mock-sardor", name: "Sardor", photoUrl: "", avgServiceTimeMs: 25 * 60 * 1000, active: true },
+  { _id: "mock-aziz", name: "Aziz", photoUrl: "", avgServiceTimeMs: 20 * 60 * 1000, active: true, onDuty: true },
+  { _id: "mock-sardor", name: "Sardor", photoUrl: "", avgServiceTimeMs: 25 * 60 * 1000, active: true, onDuty: true },
 ];
 
 export const mockServices = [
@@ -23,6 +23,8 @@ export function mockCreateQueueItem(body) {
     status: scheduled ? "scheduled" : "waiting",
     position: 2,
     eta: scheduled ? null : 35 * 60 * 1000,
+    paid: false,
+    paymentMethod: null,
   };
 }
 
