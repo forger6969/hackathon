@@ -1,8 +1,8 @@
 :root {
-  --bg: #ffffff;
-  --surface: #f9fafb;
-  --surface-hover: #f2f4f7;
-  --border: #e4e7ec;
+  --bg: #fdfbf7;
+  --surface: #f8f5ef;
+  --surface-hover: #f2ede3;
+  --border: #e9e2d4;
 
   --text: #344054;
   --text-heading: #101828;
@@ -561,7 +561,7 @@ button.away.active {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(253, 251, 247, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent;
@@ -570,7 +570,7 @@ button.away.active {
 
 .navbar.scrolled {
   border-bottom-color: var(--border);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(253, 251, 247, 0.95);
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
