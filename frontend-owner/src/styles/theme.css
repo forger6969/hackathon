@@ -134,7 +134,7 @@ body {
   color: var(--text-inverse-2);
   border-right: 0;
   overflow: hidden;
-  transition: width .3s cubic-bezier(.2,.7,.2,1), box-shadow .3s;
+  transition: width .5s cubic-bezier(.4, 0, 0.2, 1), padding .5s cubic-bezier(.4, 0, 0.2, 1), box-shadow .5s ease;
 }
 /* Hover-expand — только когда не пиннут */
 .sidebar.is-hover:hover {
@@ -222,16 +222,16 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
-  color: rgba(222, 228, 238, 0.85);
+  border-radius: 10px;
+  color: rgba(232, 223, 200, 0.75);
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  transition: background .15s, color .15s;
+  transition: background .35s ease, color .35s ease, padding .5s cubic-bezier(.4,0,0.2,1);
   position: relative;
   white-space: nowrap;
 }
-.sidebar-item:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-inverse); }
+.sidebar-item:hover { background: rgba(201, 164, 92, 0.10); color: var(--text-inverse); }
 .sidebar-item.is-active {
   background: rgba(60, 80, 224, 0.20);
   color: var(--text-inverse);
@@ -261,11 +261,11 @@ body {
   transition: opacity .15s;
 }
 .sidebar.is-hover:not(:hover) .sidebar-item { justify-content: center; padding: 10px 8px; }
-.sidebar-item-label, .sidebar-brand-text, .sidebar-user-text, .sidebar-toggle { transition: opacity .3s .1s; }
+.sidebar-item-label, .sidebar-brand-text, .sidebar-user-text, .sidebar-toggle { transition: opacity .4s ease .15s; }
 
 /* Toggle: rotate icon когда pinned */
 .sidebar.is-pinned .sidebar-toggle svg { transform: rotate(180deg); }
-.sidebar-toggle svg { transition: transform .3s; }
+.sidebar-toggle svg { transition: transform .4s ease; }
 
 .sidebar-bottom {
   display: flex;
