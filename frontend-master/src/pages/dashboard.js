@@ -170,14 +170,14 @@ export function renderDashboard(root) {
     const since = onDuty && m.dutyStartedAt ? new Date(m.dutyStartedAt) : null;
     return `
       <div class="duty-card ${onDuty ? "duty-card-on" : "duty-card-off"}">
-        <span class="duty-card-status">${onDuty ? "🟢 LINIYADA" : "⚫ LINIYADA EMAS"}</span>
+        <span class="duty-card-status">${onDuty ? "🟢 ISHDA" : "⚫ ISH BOSHLANMAGAN"}</span>
         ${
           onDuty && since
-            ? `<span class="duty-card-since">Liniyada: ${since.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })} dan</span>`
+            ? `<span class="duty-card-since">Ish boshlangan: ${since.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" })}</span>`
             : ""
         }
         <button class="btn ${onDuty ? "btn-danger" : "btn-success"} duty-card-btn" data-duty-toggle type="button">
-          ${onDuty ? "Smenani tugatish" : "Liniyaga chiqish"}
+          ${onDuty ? "Ishni tugatish" : "Ishni boshlash"}
         </button>
       </div>
     `;

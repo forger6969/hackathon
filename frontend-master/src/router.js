@@ -91,10 +91,10 @@ function renderSidebarFooter() {
     </div>
     <div class="sidebar-duty-row">
       <span class="duty-dot ${onDuty ? "duty-dot-on" : "duty-dot-off"}"></span>
-      <span class="sidebar-duty-label">${onDuty ? "Liniyada" : "Liniyada emas"}</span>
+      <span class="sidebar-duty-label">${onDuty ? "Ishda" : "Ishda emas"}</span>
     </div>
     <button id="sidebar-duty-toggle" class="btn ${onDuty ? "btn-danger" : "btn-success"} sidebar-duty-btn" type="button">
-      ${onDuty ? "Smenani tugatish" : "Liniyaga chiqish"}
+      ${onDuty ? "Ishni tugatish" : "Ishni boshlash"}
     </button>
     <button id="sidebar-logout" class="switch-link sidebar-logout" type="button">Chiqish</button>
   `;

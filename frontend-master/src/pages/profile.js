@@ -28,7 +28,7 @@ export function renderProfile(root) {
       <div class="profile-card">
         <span class="avatar profile-avatar">${initials(master.name)}</span>
         <h2 class="active-card-name">${escapeHtml(master.name)}</h2>
-        <span class="status-badge ${master.onDuty ? "status-paid" : "status-waiting"}">${master.onDuty ? "Liniyada" : "Liniyada emas"}</span>
+        <span class="status-badge ${master.onDuty ? "status-paid" : "status-waiting"}">${master.onDuty ? "Ishda" : "Ishda emas"}</span>
       </div>
 
       <div class="profile-fields">
