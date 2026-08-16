@@ -60,10 +60,10 @@ const fmtDate = (d) =>
 
 // Услуги в seed бэкенда — используем их же для цветов chart / mock feed
 const SERVICES = [
-  { name: 'Soch olish',    price: 30000, color: '#C9A45C' }, // gold
-  { name: 'Soqol olish',   price: 20000, color: '#7A9A6D' }, // sage
-  { name: 'Soch + soqol',  price: 45000, color: '#E0C285' }, // bright gold
-  { name: "Bo'yash",       price: 60000, color: '#6D8FA9' }, // slate blue
+  { name: 'Soch olish',    price: 30000, color: '#C9A24E' }, // polished brass
+  { name: 'Soqol olish',   price: 20000, color: '#3B9975' }, // emerald bright
+  { name: 'Soch + soqol',  price: 45000, color: '#EFCE85' }, // champagne
+  { name: "Bo'yash",       price: 60000, color: '#4EA8B8' }, // peacock teal
 ];
 const MASTERS = [
   { id: 'aziz',   name: 'Aziz',   avgMin: 20 },
