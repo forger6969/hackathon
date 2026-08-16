@@ -2,50 +2,221 @@
   display: none !important;
 }
 
-.reception-form {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
+.reception-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 24px 56px;
+}
+
+/* ── Header ─────────────────────────────── */
+
+.r-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 16px;
   margin-bottom: 20px;
 }
 
-.reception-form h2 {
-  margin: 0 0 12px;
+.r-header-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.r-header-title h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+/* ── TailAdmin-style metric cards: icon chip + value + label ─── */
+
+.r-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.r-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
+}
+
+.r-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  flex: none;
+}
+
+.r-stat-icon-accent { background: rgba(201, 164, 92, 0.16); }
+.r-stat-icon-blue { background: rgba(122, 154, 200, 0.16); }
+.r-stat-icon-muted { background: rgba(154, 154, 154, 0.14); }
+.r-stat-icon-success { background: rgba(122, 154, 109, 0.16); }
+
+.r-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.r-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.r-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── Layout: sidebar + main ─────────────── */
+
+.r-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .r-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.r-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+@media (max-width: 860px) {
+  .r-sidebar {
+    position: static;
+  }
+}
+
+.r-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
+}
+
+.r-card h2 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.r-main {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 320px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
+}
+
+.r-main-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.r-main-head h2 {
+  margin: 0;
   font-size: 15px;
+  font-weight: 700;
   color: var(--text-heading);
 }
+
+.r-main-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── Form ───────────────────────────────── */
 
 #add-client-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
-#add-client-form input[type="text"],
-#add-client-form input[type="tel"],
-#add-client-form input[type="datetime-local"],
-#add-client-form select {
+.r-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.r-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.r-field input[type="text"],
+.r-field input[type="tel"],
+.r-field input[type="datetime-local"],
+.r-field select {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 9px;
+  padding: 11px 12px;
   font-size: 14px;
   width: 100%;
+  transition: border-color 0.15s ease;
 }
 
-#add-client-form input:focus,
-#add-client-form select:focus {
+.r-field input:focus,
+.r-field select:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+#f-time {
+  margin-top: -6px;
 }
 
 .f-when {
   display: flex;
   gap: 16px;
-  color: var(--text-secondary);
+  color: var(--text);
   font-size: 13px;
+  padding: 2px 0;
 }
 
 .f-when label {
@@ -53,53 +224,21 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  font-weight: 500;
 }
 
-.status-badge.status-scheduled {
-  color: var(--text-secondary);
-  background: rgba(154, 154, 154, 0.12);
-  border: 1px dashed var(--border);
+#add-client-form .btn-primary {
+  margin-top: 4px;
+  padding: 13px 10px;
+  font-size: 14px;
 }
 
-.status-badge.status-paid {
-  color: var(--success);
-  background: rgba(122, 154, 109, 0.14);
-}
-
-.status-badge.status-unpaid {
-  color: var(--error);
-  background: rgba(176, 82, 74, 0.14);
-}
-
-.reception-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.reception-master {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.masters-status {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.masters-status h2 {
-  margin: 0 0 12px;
-  font-size: 15px;
-  color: var(--text-heading);
-}
+/* ── Masters status chips ───────────────── */
 
 .masters-status-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .master-status-row {
@@ -107,6 +246,10 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
 }
 
 .master-status-dot {
@@ -123,6 +266,10 @@
 
 .master-status-row.is-off .master-status-dot {
   background: var(--text-disabled);
+}
+
+.master-status-row.is-off {
+  opacity: 0.7;
 }
 
 .master-status-name {
@@ -145,7 +292,75 @@
 }
 
 .master-status-label {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* ── Queue cards (list in main column) ──── */
+
+.r-main .queue-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.r-main .queue-card {
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.r-main .queue-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.5);
+}
+
+.r-main .queue-client-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.r-main .queue-client-name::before {
+  content: attr(data-initial);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  color: var(--accent-bright);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.reception-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-badge.status-scheduled {
+  color: var(--text-secondary);
+  background: rgba(154, 154, 154, 0.12);
+  border: 1px dashed var(--border);
+}
+
+.status-badge.status-paid {
+  color: var(--success);
+  background: rgba(122, 154, 109, 0.14);
+}
+
+.status-badge.status-unpaid {
+  color: var(--error);
+  background: rgba(176, 82, 74, 0.14);
+}
+
+.reception-master {
+  color: var(--text-secondary);
+  font-size: 13px;
 }

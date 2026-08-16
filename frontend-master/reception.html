@@ -8,40 +8,102 @@
     <link rel="stylesheet" href="/src/reception.css" />
   </head>
   <body>
-    <div id="app">
-      <header class="topbar">
-        <h1>Navbat · Reception</h1>
+    <div class="reception-page">
+      <header class="r-header">
+        <div class="r-header-title">
+          <span class="r-header-eyebrow">Navbat</span>
+          <h1>Reception</h1>
+        </div>
       </header>
+
+      <div class="r-stat-grid">
+        <div class="r-stat-card">
+          <span class="r-stat-icon r-stat-icon-accent">👥</span>
+          <div class="r-stat-body">
+            <span class="r-stat-value" id="stat-total">0</span>
+            <span class="r-stat-label">jami navbatda</span>
+          </div>
+        </div>
+        <div class="r-stat-card">
+          <span class="r-stat-icon r-stat-icon-blue">⏳</span>
+          <div class="r-stat-body">
+            <span class="r-stat-value" id="stat-waiting">0</span>
+            <span class="r-stat-label">kutmoqda</span>
+          </div>
+        </div>
+        <div class="r-stat-card">
+          <span class="r-stat-icon r-stat-icon-muted">🗓️</span>
+          <div class="r-stat-body">
+            <span class="r-stat-value" id="stat-scheduled">0</span>
+            <span class="r-stat-label">belgilangan</span>
+          </div>
+        </div>
+        <div class="r-stat-card">
+          <span class="r-stat-icon r-stat-icon-success">🟢</span>
+          <div class="r-stat-body">
+            <span class="r-stat-value" id="stat-onduty">0</span>
+            <span class="r-stat-label">usta on line</span>
+          </div>
+        </div>
+      </div>
 
       <div id="offline-banner" class="offline-banner hidden">Aloqa yo'q — qayta urinilmoqda…</div>
 
-      <section class="masters-status">
-        <h2>Ustalar holati</h2>
-        <div id="masters-status-list" class="masters-status-list"></div>
-      </section>
+      <div class="r-grid">
+        <aside class="r-sidebar">
+          <section class="r-card">
+            <h2>Ustalar holati</h2>
+            <div id="masters-status-list" class="masters-status-list"></div>
+          </section>
 
-      <section class="reception-form">
-        <h2>Mijoz qo'shish</h2>
-        <form id="add-client-form">
-          <input id="f-name" type="text" placeholder="Mijoz ismi" required />
-          <input id="f-phone" type="tel" placeholder="Telefon" />
-          <select id="f-salon" required></select>
-          <select id="f-master" required></select>
-          <select id="f-service" required></select>
+          <section class="r-card">
+            <h2>Mijoz qo'shish</h2>
+            <form id="add-client-form">
+              <label class="r-field">
+                <span>Mijoz ismi</span>
+                <input id="f-name" type="text" placeholder="Ism familiya" required />
+              </label>
+              <label class="r-field">
+                <span>Telefon</span>
+                <input id="f-phone" type="tel" placeholder="+998 90 123 45 67" />
+              </label>
+              <label class="r-field">
+                <span>Salon</span>
+                <select id="f-salon" required></select>
+              </label>
+              <label class="r-field">
+                <span>Usta</span>
+                <select id="f-master" required></select>
+              </label>
+              <label class="r-field">
+                <span>Xizmat</span>
+                <select id="f-service" required></select>
+              </label>
 
-          <div class="f-when">
-            <label><input type="radio" name="when" value="now" checked /> Hozir</label>
-            <label><input type="radio" name="when" value="later" /> Belgilangan vaqtga</label>
+              <div class="r-field">
+                <span>Qachon</span>
+                <div class="f-when">
+                  <label><input type="radio" name="when" value="now" checked /> Hozir</label>
+                  <label><input type="radio" name="when" value="later" /> Belgilangan vaqtga</label>
+                </div>
+              </div>
+              <input id="f-time" type="datetime-local" class="hidden" />
+
+              <button type="submit" class="btn btn-primary">Navbatga qo'shish</button>
+            </form>
+          </section>
+        </aside>
+
+        <main class="r-main">
+          <div class="r-main-head">
+            <h2>Jonli navbat</h2>
+            <span class="r-main-hint">barcha ustalar bo'yicha</span>
           </div>
-          <input id="f-time" type="datetime-local" class="hidden" />
-
-          <button type="submit" class="btn btn-primary">Navbatga qo'shish</button>
-        </form>
-      </section>
-
-      <main id="reception-list" class="queue-list">
-        <p class="empty-state">Yuklanmoqda…</p>
-      </main>
+          <div id="reception-list" class="queue-list">
+            <p class="empty-state">Yuklanmoqda…</p>
+          </div>
+        </main>
+      </div>
     </div>
     <script type="module" src="/src/reception.js"></script>
   </body>

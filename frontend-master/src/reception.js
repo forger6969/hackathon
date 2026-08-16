@@ -15,6 +15,10 @@ const els = {
   list: document.getElementById("reception-list"),
   offline: document.getElementById("offline-banner"),
   mastersStatus: document.getElementById("masters-status-list"),
+  statTotal: document.getElementById("stat-total"),
+  statWaiting: document.getElementById("stat-waiting"),
+  statScheduled: document.getElementById("stat-scheduled"),
+  statOnDuty: document.getElementById("stat-onduty"),
 };
 
 let masters = [];
@@ -74,6 +78,8 @@ function renderMastersStatus() {
       `;
     })
     .join("");
+
+  els.statOnDuty.textContent = masters.filter((m) => m.onDuty).length;
 }
 
 async function loadCatalog() {
@@ -186,7 +192,15 @@ function formatScheduled(iso) {
   return d.toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
+function renderStats() {
+  els.statTotal.textContent = items.length;
+  els.statWaiting.textContent = items.filter((i) => i.status === "waiting" || i.status === "called" || i.status === "in_progress").length;
+  els.statScheduled.textContent = items.filter((i) => i.status === "scheduled").length;
+}
+
 function render() {
+  renderStats();
+
   if (!items.length) {
     els.list.innerHTML = "<p class=\"empty-state\">Navbat bo'sh</p>";
     return;
@@ -194,6 +208,7 @@ function render() {
 
   els.list.innerHTML = items
     .map((item) => {
+      const initial = (item.clientName || "?").trim()[0]?.toUpperCase() || "?";
       const badge = STATUS_LABELS[item.status] || item.status;
       const scheduledTag =
         item.status === "scheduled" && item.scheduledFor
@@ -214,7 +229,7 @@ function render() {
       return `
         <div class="queue-card" data-id="${item._id}">
           <div class="queue-card-head">
-            <h2 class="queue-client-name">${escapeHtml(item.clientName)}</h2>
+            <h2 class="queue-client-name" data-initial="${escapeHtml(initial)}">${escapeHtml(item.clientName)}</h2>
             ${scheduledTag}
           </div>
           <div class="reception-badges">
