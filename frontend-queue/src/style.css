@@ -9,14 +9,14 @@
   --text-secondary: #667085;
   --text-disabled: #98a2b3;
 
-  --accent: #465fff;
-  --accent-hover: #3a4fe0;
-  --accent-bright: #6a80ff;
+  --accent: #c9a45c;
+  --accent-hover: #b8924a;
+  --accent-bright: #d9b978;
 
-  --success: #12b76a;
-  --error: #f04438;
+  --success: #4c8b5b;
+  --error: #b0524a;
 
-  --on-accent: #ffffff;
+  --on-accent: #241b0e;
   --on-success: #ffffff;
   --on-media: #ffffff;
 
@@ -580,7 +580,7 @@ button.away.active {
   border-radius: 14px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(70, 95, 255, 0.28);
+  box-shadow: 0 4px 12px rgba(180, 140, 60, 0.32);
   transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
 }
@@ -588,12 +588,12 @@ button.away.active {
 .btn-primary:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(70, 95, 255, 0.35);
+  box-shadow: 0 8px 20px rgba(180, 140, 60, 0.4);
 }
 
 .btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(70, 95, 255, 0.28);
+  box-shadow: 0 3px 8px rgba(180, 140, 60, 0.32);
 }
 
 .btn-lg {
@@ -696,7 +696,7 @@ button.away.active {
 }
 
 .hero-media.img-fallback {
-  background: radial-gradient(circle at 30% 20%, #2b3a8f, #0d1230 70%);
+  background: radial-gradient(circle at 30% 20%, #4a3a1f, #1a1408 70%);
 }
 
 .hero-img {
@@ -920,7 +920,7 @@ button.away.active {
 }
 
 .big-image.img-fallback {
-  background: radial-gradient(circle at 70% 30%, #2b3a8f, #0d1230 75%);
+  background: radial-gradient(circle at 70% 30%, #4a3a1f, #1a1408 75%);
 }
 
 .big-image-img {
