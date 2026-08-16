@@ -631,10 +631,30 @@ button.away.active {
 }
 
 .navbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font-weight: 800;
   letter-spacing: 0.14em;
   font-size: 15px;
   color: var(--text-heading);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  flex-shrink: 0;
+}
+
+.brand-mark svg {
+  width: 17px;
+  height: 17px;
 }
 
 .nav-links {
@@ -1058,6 +1078,13 @@ button.away.active {
   color: var(--text-heading);
   font-size: 16px;
   margin-bottom: 6px;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
 }
 
 .footer-sub {
