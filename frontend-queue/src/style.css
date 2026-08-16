@@ -686,15 +686,13 @@ button.away.active {
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: var(--accent);
-  color: var(--on-accent);
   flex-shrink: 0;
 }
 
-.brand-mark svg {
-  width: 17px;
-  height: 17px;
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .nav-links {
