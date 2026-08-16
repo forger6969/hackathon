@@ -4,38 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>Navbat — Usta</title>
+    <link rel="icon" type="image/png" href="/logo-icon.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div id="app">
-      <header class="topbar">
-        <div class="topbar-title">
-          <h1>Navbat</h1>
-          <p class="topbar-subtitle">Usta paneli</p>
+    <div id="login-root"></div>
+
+    <div id="app-shell" class="app-shell hidden">
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark"><img src="/logo-icon.png" alt="" /></span>
+          <span class="sidebar-brand-text">
+            <span class="sidebar-brand-name">NAVBAT</span>
+            <span class="sidebar-brand-sub">Barbershop CRM</span>
+          </span>
         </div>
-        <div id="master-indicator" class="master-indicator hidden">
-          <div class="master-indicator-row">
-            <span id="master-indicator-name" class="master-indicator-name"></span>
-            <button id="switch-master-btn" class="switch-link" type="button">Almashtirish</button>
+        <nav id="sidebar-nav" class="sidebar-nav"></nav>
+        <div id="sidebar-footer" class="sidebar-footer"></div>
+      </aside>
+
+      <div class="app-main">
+        <header class="app-topbar">
+          <div id="offline-banner" class="offline-banner hidden">
+            <span class="offline-dot"></span> Aloqa yo'q — qayta urinilmoqda…
           </div>
-          <button id="duty-toggle" class="duty-toggle" type="button"></button>
-        </div>
-      </header>
-
-      <div id="today-stats" class="today-stats hidden"></div>
-
-      <div id="queue-stats" class="queue-stats hidden"></div>
-
-      <div id="offline-banner" class="offline-banner hidden">
-        <span class="offline-dot"></span> Aloqa yo'q — qayta urinilmoqda…
+          <div class="topbar-spacer"></div>
+          <div id="notif-bell" class="notif-bell">
+            <button id="notif-bell-btn" class="notif-bell-btn" type="button" aria-label="Bildirishnomalar">
+              🔔<span id="notif-badge" class="notif-badge hidden"></span>
+            </button>
+            <div id="notif-dropdown" class="notif-dropdown hidden"></div>
+          </div>
+        </header>
+        <main id="page-content" class="page-content"></main>
       </div>
 
-      <main id="queue-list" class="queue-list">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-row"></div>
-        <div class="skeleton-row"></div>
-      </main>
+      <nav id="bottom-nav" class="bottom-nav"></nav>
     </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
