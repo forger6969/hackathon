@@ -48,6 +48,9 @@ const els = {
   payChangeValue: document.getElementById("pay-change-value"),
   paySubmit: document.getElementById("pay-submit"),
   payCancel: document.getElementById("payment-cancel"),
+  codeForm: document.getElementById("code-search-form"),
+  codeInput: document.getElementById("code-search-input"),
+  codeError: document.getElementById("code-search-error"),
 };
 
 let masters = [];
@@ -376,6 +379,34 @@ els.payForm.addEventListener("submit", async (e) => {
 });
 
 els.payCancel.addEventListener("click", () => els.payModal.classList.add("hidden"));
+
+// ── Booking-code search (client shows this instead of a scanned QR — see
+// frontend-queue's bookingCode(): last 6 chars of the _id, uppercased) ──
+
+function bookingCode(id) {
+  return (id || "").toString().slice(-6).toUpperCase();
+}
+
+els.codeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const code = els.codeInput.value.trim().toUpperCase();
+  if (!code) return;
+
+  const match = items.find((i) => bookingCode(i._id) === code);
+  els.codeError.classList.toggle("hidden", !!match);
+  if (!match) return;
+
+  els.codeInput.value = "";
+  const card = els.list.querySelector(`[data-id="${match._id}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("is-highlighted");
+    setTimeout(() => card.classList.remove("is-highlighted"), 2000);
+  }
+  if (!match.paid) {
+    openPaymentModal(match._id);
+  }
+});
 
 // ── Cash movement modal (manual deposit/withdrawal) ──
 

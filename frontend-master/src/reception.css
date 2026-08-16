@@ -38,6 +38,48 @@
   letter-spacing: -0.01em;
 }
 
+.r-code-search {
+  display: flex;
+  gap: 8px;
+}
+
+.r-code-search input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 200px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+
+.r-code-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.r-code-search .btn {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.r-code-search-error {
+  color: var(--error);
+  font-size: 13px;
+  margin: -10px 0 16px;
+}
+
+.queue-card.is-highlighted {
+  animation: r-highlight-pulse 2s ease;
+}
+
+@keyframes r-highlight-pulse {
+  0%, 100% { box-shadow: 0 1px 2px rgba(58, 40, 10, 0.08); border-color: var(--border); }
+  20%, 60% { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
+}
+
 /* ── TailAdmin-style metric cards: icon chip + value + label ─── */
 
 .r-stat-grid {
