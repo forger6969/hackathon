@@ -1,0 +1,67 @@
+.hidden {
+  display: none !important;
+}
+
+.reception-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.reception-form h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-heading);
+}
+
+#add-client-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#add-client-form input[type="text"],
+#add-client-form input[type="tel"],
+#add-client-form input[type="datetime-local"],
+#add-client-form select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+}
+
+#add-client-form input:focus,
+#add-client-form select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.f-when {
+  display: flex;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.f-when label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.status-badge.status-scheduled {
+  color: var(--text-secondary);
+  background: rgba(154, 154, 154, 0.12);
+  border: 1px dashed var(--border);
+}
+
+.reception-master {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
