@@ -1,27 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
+
 :root {
-  --bg: #fdfbf7;
-  --surface: #f8f5ef;
-  --surface-hover: #f2ede3;
-  --border: #e9e2d4;
+  /* Warm dark theme, copper/bronze accent — redesign 2026-08-17, matches
+     master/reception/owner. */
+  --bg: #100d0b;
+  --surface: #16120f;
+  --surface-hover: #291f18;
+  --border: #2c221b;
 
-  --text: #344054;
-  --text-heading: #101828;
-  --text-secondary: #667085;
-  --text-disabled: #98a2b3;
+  --text: #e8dfc8;
+  --text-heading: #f2e9df;
+  --text-secondary: #9d8b79;
+  --text-disabled: #4a3f34;
 
-  --accent: #c9a45c;
-  --accent-hover: #b8924a;
-  --accent-bright: #d9b978;
+  --accent: #c8804f;
+  --accent-hover: #d9986a;
+  --accent-bright: #e79a63;
 
-  --success: #4c8b5b;
-  --error: #b0524a;
+  --success: #7ba36f;
+  --error: #c1543f;
 
-  --on-accent: #241b0e;
+  --on-accent: #1a120c;
   --on-success: #ffffff;
   --on-media: #ffffff;
 
-  color-scheme: light;
+  --font-display: 'Oswald', 'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  color-scheme: dark;
 }
+
 
 * {
   box-sizing: border-box;
@@ -40,7 +48,7 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -125,6 +133,8 @@ body.standalone-page #app {
 }
 
 .queue-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 72px;
   font-weight: 700;
   color: var(--accent);
@@ -617,7 +627,7 @@ button.away.active {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(253, 251, 247, 0.75);
+  background: rgba(16, 13, 11, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent;
@@ -626,8 +636,8 @@ button.away.active {
 
 .navbar.scrolled {
   border-bottom-color: var(--border);
-  background: rgba(253, 251, 247, 0.95);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+  background: rgba(16, 13, 11, 0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .navbar-inner {
@@ -737,8 +747,9 @@ button.away.active {
 }
 
 .hero-headline {
+  font-family: var(--font-display);
   font-size: clamp(40px, 7vw, 68px);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.05;
   color: var(--on-media);
   margin: 0 0 20px;
@@ -829,8 +840,9 @@ button.away.active {
 }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: clamp(26px, 4vw, 36px);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-heading);
   margin: 0 0 8px;
   line-height: 1.15;

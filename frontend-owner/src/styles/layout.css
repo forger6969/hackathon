@@ -160,7 +160,7 @@
 }
 
 .sidebar-item.is-active {
-  background: rgba(201, 162, 78, 0.08);
+  background: rgba(200, 128, 79, 0.08);
   border-color: var(--border);
   color: var(--gold-warm);
 }
@@ -380,7 +380,7 @@
 }
 
 .salon-select-item:hover { background: var(--surface-2); }
-.salon-select-item.is-active { background: rgba(201, 162, 78, 0.06); }
+.salon-select-item.is-active { background: rgba(200, 128, 79, 0.06); }
 
 .salon-select-item-mark {
   width: 28px;
@@ -446,7 +446,7 @@
 
 .top-search-input:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(201, 162, 78, 0.12);
+  box-shadow: 0 0 0 3px rgba(200, 128, 79, 0.12);
 }
 
 .top-search-results {
@@ -640,7 +640,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  background: rgba(201, 162, 78, 0.08);
+  background: rgba(200, 128, 79, 0.08);
   color: var(--gold);
   margin-bottom: 4px;
 }
@@ -824,7 +824,7 @@
 }
 
 .badge--waiting    { background: rgba(14, 74, 84, 0.35); color: var(--teal-bright); }
-.badge--called     { background: rgba(201, 162, 78, 0.15); color: var(--gold-warm); }
+.badge--called     { background: rgba(200, 128, 79, 0.15); color: var(--gold-warm); }
 .badge--in-progress { background: rgba(30, 95, 74, 0.35); color: var(--emerald-bright); }
 .badge--scheduled  { background: rgba(90, 74, 42, 0.3); color: var(--gold); }
 .badge--done       { background: rgba(30, 95, 74, 0.2); color: var(--emerald-bright); }
@@ -832,15 +832,15 @@
 .badge--cancelled  { background: rgba(110, 32, 24, 0.3); color: var(--garnet-bright); }
 .badge--paid       { background: rgba(30, 95, 74, 0.2); color: var(--emerald-bright); }
 .badge--unpaid     { background: rgba(110, 32, 24, 0.2); color: var(--garnet-bright); }
-.badge--cash       { background: rgba(201, 162, 78, 0.12); color: var(--gold); }
+.badge--cash       { background: rgba(200, 128, 79, 0.12); color: var(--gold); }
 .badge--card       { background: rgba(14, 74, 84, 0.3); color: var(--teal-bright); }
 
 .badge--fixed   { background: rgba(14, 74, 84, 0.3); color: var(--teal-bright); }
-.badge--percent { background: rgba(201, 162, 78, 0.12); color: var(--gold); }
+.badge--percent { background: rgba(200, 128, 79, 0.12); color: var(--gold); }
 .badge--hybrid  { background: rgba(30, 95, 74, 0.25); color: var(--emerald-bright); }
 
 .badge--instock  { background: rgba(30, 95, 74, 0.2); color: var(--emerald-bright); }
-.badge--low      { background: rgba(201, 162, 78, 0.15); color: var(--gold-warm); }
+.badge--low      { background: rgba(200, 128, 79, 0.15); color: var(--gold-warm); }
 .badge--critical { background: rgba(110, 32, 24, 0.3); color: var(--garnet-bright); }
 .badge--out      { background: rgba(60, 18, 16, 0.5); color: var(--garnet-bright); border: 1px solid rgba(201, 86, 74, 0.3); }
 
@@ -1140,7 +1140,7 @@
   transition: transform 0.2s, background 0.2s;
 }
 
-.toggle input:checked + .toggle-track { background: rgba(201, 162, 78, 0.3); border-color: var(--gold); }
+.toggle input:checked + .toggle-track { background: rgba(200, 128, 79, 0.3); border-color: var(--gold); }
 .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); background: var(--gold); }
 
 /* ── Section card header ──────────────────────────────────────────────── */
@@ -1254,7 +1254,7 @@
 }
 .chip-btn:hover { color: var(--text); border-color: var(--border-strong); }
 .chip-btn.is-active {
-  background: rgba(201, 162, 78, 0.10);
+  background: rgba(200, 128, 79, 0.10);
   border-color: var(--gold);
   color: var(--gold-bright);
 }
@@ -1263,7 +1263,7 @@
 .q-pos {
   width: 28px; height: 28px;
   border-radius: 50%;
-  background: rgba(201, 162, 78, 0.10);
+  background: rgba(200, 128, 79, 0.10);
   border: 1px solid var(--accent-line);
   color: var(--gold-bright);
   font-family: var(--font-num);

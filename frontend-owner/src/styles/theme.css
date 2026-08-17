@@ -1,45 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
+
 /* ═══════════════════════════════════════════════
    Навбат — TailAdmin-inspired Light theme
    Полностью заменяет старый dark UI kit.
    ═══════════════════════════════════════════════ */
 
 :root {
-  /* ── Neutrals — milk/cream, matches the master/reception/client palette ── */
-  --body:            #FAF6EC;
-  --surface:         #FFFDF8;
-  --surface-2:       #F5EFE0;
-  --surface-hover:   #F5EFE0;
-  --surface-dark:    #211809;        /* Sidebar bg */
-  --surface-dark-2:  #2C2010;
+  /* ── Neutrals — warm dark, barbershop palette (redesign 2026-08-17) ── */
+  --body:            #100D0B;
+  --surface:         #16120F;
+  --surface-2:       #221A15;
+  --surface-hover:   #291F18;
+  --surface-dark:    #0B0908;        /* Sidebar bg — darker than body */
+  --surface-dark-2:  #16120F;
 
-  --border:          #E8DFC8;
-  --border-strong:   #D4C7A3;
+  --border:          #2C221B;
+  --border-strong:   #3A2C22;
 
   /* Text scale */
-  --text-strong:     #241B0E;
-  --text:            #3A2F1F;
-  --text-secondary:  #8A7A5C;
-  --text-muted:      #A99A78;
-  --text-dim:        #A99A78;
-  --text-disabled:   #C4B79A;
-  --text-inverse:    #FFFFFF;
+  --text-strong:     #F2E9DF;
+  --text:            #E8DFC8;
+  --text-secondary:  #9D8B79;
+  --text-muted:      #9D8B79;
+  --text-dim:        #6F6154;
+  --text-disabled:   #4A3F34;
+  --text-inverse:    #F2E9DF;
   --text-inverse-2:  #E8DFC8;
 
-  /* Brand accent — gold, not TailAdmin's default blue */
-  --primary:         #C9A45C;
-  --primary-hover:   #B8924A;
-  --primary-tint:    #F3E7C9;
-  --primary-100:     #EEDFB3;
+  /* Brand accent — copper/bronze, not gold (distinct from weWatch) */
+  --primary:         #C8804F;
+  --primary-hover:   #D9986A;
+  --primary-tint:    rgba(200, 128, 79, 0.16);
+  --primary-100:     rgba(200, 128, 79, 0.30);
 
   /* Semantic */
-  --success:         #4C8B5B;
-  --success-tint:    #E6F2E6;
-  --warning:         #D99A35;
-  --warning-tint:    #FAEDD0;
-  --danger:          #B0524A;
-  --danger-tint:     #F7E4E1;
-  --info:            #6B8BA8;
-  --info-tint:       #E6ECF2;
+  --success:         #7BA36F;
+  --success-tint:    rgba(123, 163, 111, 0.14);
+  --warning:         #D6AB55;
+  --warning-tint:    rgba(214, 171, 85, 0.14);
+  --danger:          #C1543F;
+  --danger-tint:     rgba(193, 84, 63, 0.14);
+  --info:            #7A93A8;
+  --info-tint:       rgba(122, 147, 168, 0.14);
 
   /* Legacy compat (мапится на новые — чтобы старые классы не сломались) */
   --bg:             var(--body);
@@ -55,7 +57,7 @@
   --accent-bright:  var(--primary);
   --accent-soft:    var(--primary-tint);
   --accent-line:    #C7D2FE;
-  --accent-glow:    rgba(60, 80, 224, 0.15);
+  --accent-glow:    rgba(200, 128, 79, 0.15);
   --error:          var(--danger);
   --emerald:        var(--success);
   --emerald-bright: var(--success);
@@ -72,22 +74,24 @@
   --radius-sm:       10px;
   --radius-xs:       8px;
 
-  --font-sans: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-num:  'Inter', 'Manrope', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans:    'Hanken Grotesk', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Oswald', var(--font-sans);
+  --font-num:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.03);
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.34), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-3: 0 20px 48px -12px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.2);
   --shadow-card: var(--shadow-1);
   --shadow-warn: var(--shadow-1);
-  --shadow-fab:  0 6px 20px rgba(60, 80, 224, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-fab:  0 6px 20px rgba(200, 128, 79, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-hero: var(--shadow-2);
 
   --brass-fill: linear-gradient(135deg, var(--primary), var(--primary-hover));
   --brass-thin: linear-gradient(180deg, var(--primary), var(--primary-hover));
 }
+
 
 /* ── Reset + base ────────────────────────── */
 * { box-sizing: border-box; }
@@ -157,13 +161,13 @@ body {
 .sidebar-mark {
   width: 40px; height: 40px;
   flex-shrink: 0;
-  background: rgba(60, 80, 224, 0.14);
+  background: rgba(200, 128, 79, 0.14);
   border-radius: 12px;
   padding: 4px;
   display: grid;
   place-items: center;
   overflow: hidden;
-  box-shadow: 0 4px 12px -4px rgba(60, 80, 224, 0.4);
+  box-shadow: 0 4px 12px -4px rgba(200, 128, 79, 0.4);
 }
 .sidebar-mark img { display: block; max-width: 100%; max-height: 100%; }
 .sidebar-brand-text { min-width: 0; overflow: hidden; }
@@ -233,7 +237,7 @@ body {
 }
 .sidebar-item:hover { background: rgba(201, 164, 92, 0.10); color: var(--text-inverse); }
 .sidebar-item.is-active {
-  background: rgba(60, 80, 224, 0.20);
+  background: rgba(200, 128, 79, 0.20);
   color: var(--text-inverse);
 }
 .sidebar-item.is-active::before {
@@ -464,7 +468,7 @@ body {
   outline: 0;
   border-color: var(--primary);
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(60, 80, 224, 0.12);
+  box-shadow: 0 0 0 3px rgba(200, 128, 79, 0.12);
 }
 .top-search-results {
   position: absolute;
@@ -982,7 +986,7 @@ body {
 
 .skeleton {
   display: inline-block;
-  background: linear-gradient(90deg, #EAEEF3 0%, #F5F7FA 50%, #EAEEF3 100%);
+  background: linear-gradient(90deg, #221A15 0%, #2C221B 50%, #221A15 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   border-radius: 6px;
@@ -997,7 +1001,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(28, 36, 52, 0.5);
+  background: rgba(8, 6, 5, 0.65);
   backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity .25s ease;
@@ -1031,7 +1035,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 400;
-  background: rgba(28, 36, 52, 0.5);
+  background: rgba(8, 6, 5, 0.65);
   backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
@@ -1097,7 +1101,7 @@ select.field-input {
 .field-input:focus {
   outline: 0;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(60, 80, 224, 0.12);
+  box-shadow: 0 0 0 3px rgba(200, 128, 79, 0.12);
 }
 .field-input::placeholder { color: var(--text-muted); }
 
@@ -1768,7 +1772,7 @@ select.field-input {
   display: block;
 }
 .sidebar-item.is-active {
-  background: rgba(60, 80, 224, 0.20);
+  background: rgba(200, 128, 79, 0.20);
   color: var(--text-inverse);
   position: relative;
 }
@@ -1780,7 +1784,7 @@ select.field-input {
   width: 3px;
   border-radius: 999px;
   background: var(--primary);
-  box-shadow: 0 0 10px rgba(60, 80, 224, 0.6);
+  box-shadow: 0 0 10px rgba(200, 128, 79, 0.6);
 }
 .sidebar-item.is-active .sidebar-item-icon {
   color: #A0B0FF;
@@ -1829,7 +1833,7 @@ select.field-input {
   top: -80px; right: -80px;
   width: 260px; height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(60, 80, 224, 0.10) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(200, 128, 79, 0.10) 0%, transparent 60%);
   pointer-events: none;
 }
 .hero-revenue-main { min-width: 0; position: relative; z-index: 1; }
@@ -1961,8 +1965,8 @@ select.field-input {
 .mlc-active {
   padding: 12px 14px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(60, 80, 224, 0.08), rgba(60, 80, 224, 0.02));
-  border: 1px solid rgba(60, 80, 224, 0.20);
+  background: linear-gradient(135deg, rgba(200, 128, 79, 0.08), rgba(200, 128, 79, 0.02));
+  border: 1px solid rgba(200, 128, 79, 0.20);
 }
 .mlc-active-label {
   color: var(--primary);
@@ -2093,7 +2097,7 @@ select.field-input {
   font-weight: 700;
   font-size: 13px;
   display: grid; place-items: center;
-  border: 1px solid rgba(60, 80, 224, 0.15);
+  border: 1px solid rgba(200, 128, 79, 0.15);
   flex-shrink: 0;
 }
 
@@ -2176,7 +2180,7 @@ select.field-input {
     position: fixed;
     inset: 0;
     z-index: 350;
-    background: rgba(28, 36, 52, 0.5);
+    background: rgba(8, 6, 5, 0.65);
   }
   .topbar-wrap { padding: 12px 16px; }
   .topbar-center { display: none; }
@@ -2196,4 +2200,40 @@ select.field-input {
   .kanban { grid-template-columns: repeat(2, 1fr); }
   .kpi5 { grid-template-columns: repeat(3, 1fr); }
   .masters-live-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ═══════════════════════════════════════════
+   Redesign 2026-08-17 — display typography
+   Oswald for headings/titles, tabular JetBrains
+   Mono for every numeric value. Appended after
+   the rest of the cascade so it wins ties without
+   touching each selector above individually.
+   ═══════════════════════════════════════════ */
+.page-title,
+.dash-navbar-title,
+.sidebar-brand-name,
+.chart-title,
+.modal-title,
+.drawer-title,
+.master-card-name,
+.empty-state-title,
+.alert-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.sidebar-brand-name {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.kpi-value,
+.data-value,
+.month-value,
+.top-svc-val,
+.payroll-total-val,
+.stock-qty,
+.q-pos,
+.master-card-stat-value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
 }

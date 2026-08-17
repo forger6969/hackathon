@@ -1,29 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
+
 :root {
-  /* Milk/cream light theme, gold accent — matches the owner dashboard's
-     brand (forgerjunior retoned this from the initial generic light-blue
-     TailAdmin take so the whole app reads as one product). Layout/structure
-     below is still TailAdmin-style (sidebar, KPI cards, tables). */
-  --bg: #faf6ec;
-  --surface: #fffdf8;
-  --surface-hover: #f5efe0;
-  --border: #e8dfc8;
-  --text: #3a2f1f;
-  --text-heading: #241b0e;
-  --text-secondary: #8a7a5c;
-  --text-disabled: #c4b79a;
-  --accent: #c9a45c;
-  --accent-hover: #b8924a;
-  --accent-bright: #c9a45c;
-  --accent-soft: #f3e7c9;
-  --success: #4c8b5b;
-  --success-soft: #e6f2e6;
-  --error: #b0524a;
-  --error-soft: #f7e4e1;
-  --warning: #b5762e;
-  --warning-soft: #f3e7c9;
-  --shadow-card: 0 1px 3px rgba(58, 40, 10, 0.08), 0 1px 2px rgba(58, 40, 10, 0.05);
+  /* Warm dark theme, copper/bronze accent — redesign 2026-08-17, matches
+     the owner dashboard and client/queue screens (one product, one system).
+     Layout/structure below is still TailAdmin-style (sidebar, KPI cards,
+     tables); only the token values changed. */
+  --bg: #100d0b;
+  --surface: #16120f;
+  --surface-hover: #291f18;
+  --border: #2c221b;
+  --text: #e8dfc8;
+  --text-heading: #f2e9df;
+  --text-secondary: #9d8b79;
+  --text-disabled: #4a3f34;
+  --accent: #c8804f;
+  --accent-hover: #d9986a;
+  --accent-bright: #c8804f;
+  --accent-soft: rgba(200, 128, 79, 0.16);
+  --success: #7ba36f;
+  --success-soft: rgba(123, 163, 111, 0.14);
+  --error: #c1543f;
+  --error-soft: rgba(193, 84, 63, 0.14);
+  --warning: #d6ab55;
+  --warning-soft: rgba(214, 171, 85, 0.14);
+  --font-display: 'Oswald', var(--font-sans, 'Hanken Grotesk', system-ui, sans-serif);
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --sidebar-w: 248px;
 }
+
 
 * {
   box-sizing: border-box;
@@ -35,7 +40,7 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Hanken Grotesk", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
 
@@ -115,7 +120,7 @@ select {
 .login-password,
 .text-input {
   width: 100%;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -520,7 +525,7 @@ select {
   font-size: 12px;
   color: var(--warning);
   background: var(--warning-soft);
-  border: 1px solid #fedf89;
+  border: 1px solid rgba(214, 171, 85, 0.35);
   border-radius: 8px;
   padding: 8px 12px;
   margin: 0 0 16px;
@@ -686,7 +691,7 @@ select {
   gap: 8px;
   background: var(--error-soft);
   color: var(--error);
-  border: 1px solid #fda29b;
+  border: 1px solid rgba(193, 84, 63, 0.35);
   padding: 6px 12px;
   border-radius: 10px;
   font-size: 13px;
@@ -844,7 +849,7 @@ select {
 
 .status-badge.status-waiting {
   color: var(--text-secondary);
-  background: #f2f4f7;
+  background: var(--surface-hover);
 }
 
 .status-badge.status-called,
@@ -854,8 +859,8 @@ select {
 }
 
 .status-badge.status-scheduled {
-  color: #b54708;
-  background: #fffaeb;
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .status-badge.status-done {
@@ -931,7 +936,7 @@ select {
 .btn-danger {
   background: var(--surface);
   color: var(--error);
-  border: 1px solid #fda29b;
+  border: 1px solid rgba(193, 84, 63, 0.4);
 }
 
 .btn-danger:hover:not(:disabled) {
